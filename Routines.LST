@@ -1,0 +1,1072 @@
+C51 COMPILER V8.04b   ROUTINES                                                             03/17/2010 10:20:44 PAGE 1   
+
+
+C51 COMPILER V8.04b, COMPILATION OF MODULE ROUTINES
+OBJECT MODULE PLACED IN Routines.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE Routines.c LARGE OBJECTADVANCED OPTIMIZE(9,SPEED) BROWSE ORDER DEFINE(SLAVE
+                    -_BOARDS,PRINT_ERROR,PRINT_WARNING,PRINT,PANASONIC_12_CELLS) DEBUG
+
+line level    source
+
+   1          /*                                               */
+   2          /*       Batteriemanagement  */
+   3          /*                                               */
+   4          #include <stdio.h>
+   5          #include <intrins.h>
+   6          #include <math.h>
+   7          #include <float.h>
+   8          #include <stdlib.h>
+   9          
+  10          #include "IO.h"
+  11          #include "Routines.h"
+  12          
+  13          
+  14          // function prototypes
+  15          //GKvoid DeactivateSek(char SekNo);
+  16          void TopBalancing(SlaveData *pSlaveData);
+  17          void InterBlockTopBalancing(SlaveData *pSlaveData);
+  18          void BottomBalancing(SlaveData *pSlaveData);
+  19          void DummyBalancing(SlaveData *pSlaveData);
+  20           
+  21          void SortAlgorithm_unsigned(unsigned int *pType, char *pIndex, char loop);
+  22          void SortAlgorithm_signed(int *pType, char *pIndex, char loop);
+  23          void GetAndSortAllCellVoltages(SlaveData *pSlaveData);
+  24          void GetAndSortTemperature(SlaveData *pSlaveData);
+  25          unsigned int MDU_Convert_ADC( unsigned int ADC );
+  26          int MDU_Convert_ADC2Temp( unsigned int ADC );
+  27          unsigned int MDU_Convert_ADC2UBlock(unsigned int ADC);
+  28          
+  29          void SekOn0(void);  
+  30          void SekOn1(void);  
+  31          void SekOn2(void);  
+  32          void SekOn3(void);  
+  33          void SekOn4(void);  
+  34          void SekOn5(void);  
+  35          void SekOn6(void);  
+  36          void SekOn7(void);  
+  37          void SekOn8(void);  
+  38          void SekOn9(void);  
+  39          void SekOn10(void);  
+  40          void SekOn11(void);
+  41          
+  42          void SekOff0(void);  
+  43          void SekOff1(void);  
+  44          void SekOff2(void);  
+  45          void SekOff3(void);  
+  46          void SekOff4(void);  
+  47          void SekOff5(void);  
+  48          void SekOff6(void);  
+  49          void SekOff7(void);  
+  50          void SekOff8(void);  
+  51          void SekOff9(void);  
+  52          void SekOff10(void);  
+  53          void SekOff11(void);  
+  54            
+C51 COMPILER V8.04b   ROUTINES                                                             03/17/2010 10:20:44 PAGE 2   
+
+  55          // CORDIC register definition
+  56          sfr16   CD_CORDX        =       0x9A;      
+  57          sfr16   CD_CORDY        =       0x9C;      
+  58          sfr16   CD_CORDZ        =       0x9E;
+  59          // MDU register definition
+  60          sfr16   MDU_Operand1 =  0xB2; 
+  61          sfr16   MDU_Operand2 =  0xB4;
+  62          sfr16   MDU_Operand3 =  0xB6;
+  63          
+  64          
+  65          extern char idata FLAG_Pin;
+  66          extern SlaveData sSlaveData;
+  67          
+  68          
+  69          pSekOn   SekOn[12]  = {
+  70                                 SekOn0, SekOn1, SekOn2,  SekOn3,     \
+  71                                 SekOn4, SekOn5, SekOn6,  SekOn7,     \
+  72                                 SekOn8, SekOn9, SekOn10, SekOn11
+  73                                };
+  74          pSekOff  SekOff[12] = {
+  75                                 SekOff0, SekOff1, SekOff2,  SekOff3, \
+  76                                 SekOff4, SekOff5, SekOff6,  SekOff7, \
+  77                                 SekOff8, SekOff9, SekOff10, SekOff11
+  78                                };
+  79          
+  80          pBal BalancingFunction[4] = {BottomBalancing, TopBalancing, InterBlockTopBalancing, DummyBalancing};
+  81          
+  82          void SekOn0(void)  
+  83          { 
+  84   1        SekOn_0(); 
+  85   1      }
+  86          void SekOn1(void)  
+  87          { 
+  88   1        SekOn_1(); 
+  89   1      }
+  90          void SekOn2(void)  
+  91          { 
+  92   1        SekOn_2(); 
+  93   1      }
+  94          void SekOn3(void)  
+  95          { 
+  96   1        SekOn_3(); 
+  97   1      }
+  98          void SekOn4(void)  
+  99          { 
+ 100   1        SekOn_4(); 
+ 101   1      }
+ 102          void SekOn5(void)  
+ 103          { 
+ 104   1        SekOn_5(); 
+ 105   1      }
+ 106          void SekOn6(void)  
+ 107          { 
+ 108   1        SekOn_6(); 
+ 109   1      }
+ 110          void SekOn7(void)  
+ 111          { 
+ 112   1        SekOn_7(); 
+ 113   1      }
+ 114          void SekOn8(void)  
+ 115          { 
+ 116   1        SekOn_8(); 
+C51 COMPILER V8.04b   ROUTINES                                                             03/17/2010 10:20:44 PAGE 3   
+
+ 117   1      }
+ 118          void SekOn9(void)  
+ 119          { 
+ 120   1        SekOn_9(); 
+ 121   1      }
+ 122          void SekOn10(void)  
+ 123          { 
+ 124   1        SekOn_10();  
+ 125   1      }
+ 126          void SekOn11(void)  
+ 127          { 
+ 128   1        SekOn_11(); 
+ 129   1      }
+ 130          
+ 131          void SekOff0(void)  
+ 132          { 
+ 133   1        SekOff_0(); 
+ 134   1      }
+ 135          void SekOff1(void)  
+ 136          { 
+ 137   1        SekOff_1(); 
+ 138   1      }
+ 139          void SekOff2(void)  
+ 140          { 
+ 141   1        SekOff_2(); 
+ 142   1      }
+ 143          void SekOff3(void)  
+ 144          { 
+ 145   1        SekOff_3(); 
+ 146   1      }
+ 147          void SekOff4(void)  
+ 148          { 
+ 149   1        SekOff_4(); 
+ 150   1      }
+ 151          void SekOff5(void)  
+ 152          { 
+ 153   1        SekOff_5(); 
+ 154   1      }
+ 155          void SekOff6(void)  
+ 156          { 
+ 157   1        SekOff_6(); 
+ 158   1      }
+ 159          void SekOff7(void)  
+ 160          { 
+ 161   1        SekOff_7(); 
+ 162   1      }
+ 163          void SekOff8(void)  
+ 164          { 
+ 165   1        SekOff_8();
+ 166   1      }
+ 167          void SekOff9(void)  
+ 168          { 
+ 169   1        SekOff_9(); 
+ 170   1      }
+ 171          void SekOff10(void)  
+ 172          { 
+ 173   1        SekOff_10(); 
+ 174   1      }
+ 175          void SekOff11(void)  
+ 176          { 
+ 177   1        SekOff_11();
+ 178   1      }
+C51 COMPILER V8.04b   ROUTINES                                                             03/17/2010 10:20:44 PAGE 4   
+
+ 179          
+ 180          
+ 181          //GKvoid DeactivateSek(char SekNo)    
+ 182          //GK{  
+ 183          //GK  switch(SekNo)
+ 184          //GK  {
+ 185          //GK    case 0:  SekOff_0();  
+ 186          //GK             break;
+ 187          //GK    case 1:  SekOff_1();  
+ 188          //GK             break;
+ 189          //GK    case 2:  SekOff_2();  
+ 190          //GK             break;
+ 191          //GK    case 3:  SekOff_3();  
+ 192          //GK             break;
+ 193          //GK    case 4:  SekOff_4();  
+ 194          //GK             break;
+ 195          //GK    case 5:  SekOff_5();  
+ 196          //GK             break;
+ 197          //GK    case 6:  SekOff_6();  
+ 198          //GK             break;
+ 199          //GK    case 7:  SekOff_7();  
+ 200          //GK             break;
+ 201          //GK    case 8:  SekOff_8();  
+ 202          //GK             break;
+ 203          //GK    case 9:  SekOff_9(); 
+ 204          //GK             break;
+ 205          //GK    case 10: SekOff_10(); 
+ 206          //GK             break;
+ 207          //GK    case 11: SekOff_11(); 
+ 208          //GK             break;
+ 209          //GK    default: break;
+ 210          //GK  }   
+ 211          //GK}
+ 212          
+ 213          unsigned int MDU_Convert_ADC( unsigned int ADC )
+ 214          {
+ 215   1        unsigned int idata res_ac;
+ 216   1           
+ 217   1      //  //--- Multiplication ---
+ 218   1      //  SYSCON0 |= 0x01;                                    // switch into mapped area   
+ 219   1      //  MDU_Operand1 = (ADC * 40);              // 5 * 2^3
+ 220   1      //  MDU_Operand3 = sSlaveData.Ufac_u[FLAG_Pin]; // floatFactor * 2^15
+ 221   1      //  MDU_MDUCON = 0x10;                                      // unsigned 16-bit Multiplication   
+ 222   1      //  while((MDU_MDUSTAT & 0x04)== 0x04); // Polling until MDU is ready   
+ 223   1      //  res_ac = MDU_Operand2;                              // high part
+ 224   1      //  _nop_();
+ 225   1      //  SYSCON0 &= 0xFE;
+ 226   1      //  return (res_ac+Uoff_u);                             // format Q4.12 => 1/4096
+ 227   1        
+ 228   1        //--- Multiplication ---
+ 229   1        SYSCON0 |= 0x01;                                      // switch into mapped area   
+ 230   1        MDU_Operand1 = (ADC * 32);                
+ 231   1        MDU_Operand3 = sSlaveData.Ufac_u[FLAG_Pin]; // floatFactor * 2^15
+ 232   1        MDU_MDUCON = 0x10;                                // unsigned 16-bit Multiplication   
+ 233   1        while((MDU_MDUSTAT & 0x04)== 0x04);   // Polling until MDU is ready   
+ 234   1        res_ac = MDU_Operand2;                                // high part
+ 235   1      
+ 236   1         printf(" Ucorr:%5.2fV \n",(float)res_ac/4096);
+ 237   1      //added by XI
+ 238   1      
+ 239   1      
+ 240   1        _nop_();
+C51 COMPILER V8.04b   ROUTINES                                                             03/17/2010 10:20:44 PAGE 5   
+
+ 241   1        SYSCON0 &= 0xFE;
+ 242   1        return (res_ac+Uoff_u);                               // format Q4.12 => 1/4096
+ 243   1      
+ 244   1      }
+ 245          
+ 246          //#ifdef SLAVE_BOARDS
+ 247          //unsigned int MDU_Convert_ADC_rough( unsigned int ADC )
+ 248          //{
+ 249          //  unsigned int idata res_ac;
+ 250          //     
+ 251          //  //--- Multiplication ---
+ 252          //  SYSCON0 |= 0x01;                                    // switch into mapped area   
+ 253          //  MDU_Operand1 = (ADC * 32);                  // 2^5
+ 254          //  MDU_Operand3 = 40960;                   // 5 * 2^13
+ 255          //  MDU_MDUCON = 0x10;                                      // unsigned 16-bit Multiplication   
+ 256          //  while((MDU_MDUSTAT & 0x04)== 0x04); // Polling until MDU is ready   
+ 257          //  res_ac = MDU_Operand2;                              // high part
+ 258          //  SYSCON0 &= 0xFE;
+ 259          //  return res_ac;                                              // format Q4.12
+ 260          //}
+ 261          //#endif
+ 262          
+ 263          int MDU_Convert_ADC2Temp( unsigned int ADC )
+ 264          {
+ 265   1        unsigned int idata res_ac;
+ 266   1          
+ 267   1        //--- Multiplication ---
+ 268   1        // T = (u-2,2517)/0,009551
+ 269   1        // T = (ADC/1024 *5 -2,251701)/0,009551
+ 270   1        // T = 104,7*(5/1024*ADC) - 236
+ 271   1        SYSCON0 |= 0x01;                                      // switch into mapped area
+ 272   1        MDU_Operand1 = (40 * ADC);            // 5V   * 2^3
+ 273   1        MDU_Operand3 = 53606;                 // 104,7* 2^9
+ 274   1        MDU_MDUCON = 0x10;                                // unsigned 16-bit Multiplication
+ 275   1        while((MDU_MDUSTAT & 0x04)==  0x04);  // Polling until MDU is ready
+ 276   1        res_ac = MDU_Operand2;
+ 277   1        SYSCON0 &= 0xFE;  
+ 278   1        return (res_ac/64 - 236);                     // format Q10.6->Q16.0
+ 279   1      }
+ 280          
+ 281          
+ 282          unsigned int MDU_Convert_ADC2UBlock(unsigned int ADC)                     //In a loop 
+ 283          {
+ 284   1        unsigned int idata res_ac;
+ 285   1      
+ 286   1        //--- Multiplication ---
+ 287   1        SYSCON0 |= 0x01;                                      // switch into mapped area
+ 288   1        MDU_Operand1 = (40 * ADC);            // 5V * 2^3
+ 289   1        //MDU_Operand3 = 45056;                   // 11 * 2^12
+ 290   1        //MDU_Operand3 = 44835;                   // 10.946 * 2^12=   44834.82          
+ 291   1        //MDU_Operand3 = sSlaveData.Ufac_u[Cells];
+ 292   1      
+ 293   1      
+ 294   1        //modified by Ningyi
+ 295   1        MDU_Operand3 = 44835;             // 10.946 * 2^12=   44834.82          
+ 296   1        //MDU_Operand3 = sSlaveData.Ufac_u[Cells];
+ 297   1      
+ 298   1      
+ 299   1         printf(" ADC=%d\n\n",(int)ADC);
+ 300   1      //added by LIU
+ 301   1      
+ 302   1          //printf(" cal.fac. block: %.4f\n", (float)pSlaveData->Ufac_u[Cells]/Ublock_Grade);      
+C51 COMPILER V8.04b   ROUTINES                                                             03/17/2010 10:20:44 PAGE 6   
+
+ 303   1      //      printf(" cal.fac. block.ADCconvert: %.4f\n", (float)pSlaveData->Ufac_u[Cells]/Ublock_Grade);                                            
+ 304   1      //      printf(" cal.fac. block.ADCconvert: %.4f\n", (float)sSlaveData.Ufac_u[Cells]);                                                                                  
+ 305   1              //cal.fac.block.ADCconvert: 65535.000   =2^16                            
+ 306   1              
+ 307   1              printf(" cal.fac. block.ADCconvert: %.4f\n", (float)sSlaveData.Ufac_u[Cells]/Ublock_Grade);
+ 308   1      
+ 309   1              //added by XI    
+ 310   1      
+ 311   1      
+ 312   1        MDU_MDUCON = 0x10;                                // unsigned 16-bit Multiplication
+ 313   1        while((MDU_MDUSTAT & 0x04)==  0x04);  // Polling until MDU is ready
+ 314   1        res_ac = MDU_Operand2;
+ 315   1      
+ 316   1      
+ 317   1      printf(" res_ac=MDU_Operand2:%.4f\n", (float)MDU_Operand2);
+ 318   1      //added by Ningyi
+ 319   1      
+ 320   1      
+ 321   1      //printf(" res_ac/512:%5.3fV\n\n",  (float)res_ac/512);                    //=0.00
+ 322   1      //added by XI 
+ 323   1      
+ 324   1      
+ 325   1        SYSCON0 &= 0xFE;  
+ 326   1        return (res_ac/2);                    // format Q.9 -> Q.8
+ 327   1      }
+ 328          
+ 329          void GetAndSortAllCellVoltages(SlaveData *pSlaveData)
+ 330          {                            
+ 331   1        unsigned int *pBalanceCell = &pSlaveData->BalanceCell_u[0];
+ 332   1        char    *pBalanceCellIndex = &pSlaveData->BalanceCellIndex[0];  
+ 333   1        unsigned int *pUmux        = &pSlaveData->Umux_u[0];
+ 334   1        char i;
+ 335   1        
+ 336   1        for(i=0; i<Cells; i++)                                                                                                   
+ 337   1        {     
+ 338   2              *pBalanceCell++ = *pUmux;                                                                                                                          
+ 339   2              *pBalanceCellIndex++ = i;
+ 340   2              pUmux++;
+ 341   2        }     
+ 342   1         
+ 343   1        // sort all voltages 
+ 344   1        SortAlgorithm_unsigned((unsigned int *)&pSlaveData->BalanceCell_u[0], &pSlaveData->BalanceCellIndex[0], 
+             -Cells);
+ 345   1      
+ 346   1        #if defined (A123_BATTERY_10_CELLS)
+                {
+                  char idata index;
+              
+                  // search for the index of the lowest voltage cell
+                  for(i=(Cells-1); i>0; i--)
+                      {
+                        // cell 5 & 6 are not connected and 0V
+                        if( (pSlaveData->BalanceCellIndex[i]==Cell_5) || (pSlaveData->BalanceCellIndex[i]==Cell_6) )
+                          continue;
+                        else
+                        { 
+                          // lowest cell counting from the last up to the first cell
+                          index =     i;
+                          break; 
+                        }
+                      }
+              
+C51 COMPILER V8.04b   ROUTINES                                                             03/17/2010 10:20:44 PAGE 7   
+
+                  // save lowest cell index
+                  pSlaveData->LowestCellIndex = index;
+                }
+                #elif defined (MAXWELL_9_CELLS)
+                {
+                  char idata index;
+              
+                  // search for the index of the lowest voltage cell
+                  for(i=(Cells-1); i>0; i--)
+                      {
+                        // cell 5 & 6 are not connected and 0V
+                        if( (pSlaveData->BalanceCellIndex[i]==Cell_5) || (pSlaveData->BalanceCellIndex[i]==Cell_6) || (pSlaveDa
+             -ta->BalanceCellIndex[i]==Cell_7))
+                          continue;
+                        else
+                        { 
+                          // lowest cell counting from the last up to the first cell
+                          index =     i;
+                          break; 
+                        }
+                      }
+              
+                  // save lowest cell index
+                  pSlaveData->LowestCellIndex = index;
+                }
+                #elif defined (LITEC_BATTERY_12_CELLS) || defined (PANASONIC_12_CELLS) || defined (MAXWELL_12_CELLS)
+ 389   1          // save lowest cell index
+ 390   1          pSlaveData->LowestCellIndex = Cells-1;
+ 391   1        #endif                                                                                                                                        
+ 392   1      
+ 393   1        // max-Voltage
+ 394   1        pSlaveData->Umax_u = pSlaveData->BalanceCell_u[0];
+ 395   1        // min-Voltage
+ 396   1        pSlaveData->Umin_u = pSlaveData->BalanceCell_u[pSlaveData->LowestCellIndex];
+ 397   1      }
+ 398          
+ 399          void SortAlgorithm_signed(int *pType, char *pIndex, char loop)
+ 400          {
+ 401   1        char idata k, i, j, temp_index;
+ 402   1        int idata temp_type;
+ 403   1        
+ 404   1        k=1;
+ 405   1      
+ 406   1        for(i=0; i<loop-1; i++)                                                                       
+ 407   1        {                                                                                                                     
+ 408   2          for(j=0; j<loop-k; j++)                                                                     
+ 409   2          {                                                                                                           
+ 410   3            if(*(pType+j+1) > *(pType+j))                     
+ 411   3            {                                                                                                         
+ 412   4                  // sort diff voltage                                                                
+ 413   4                  temp_type = *(pType+j);                                             
+ 414   4              *(pType+j) = *(pType+j+1);                      
+ 415   4              *(pType+j+1) = temp_type;                                               
+ 416   4      
+ 417   4              // sort diff voltage index                                                      
+ 418   4                  temp_index = *(pIndex+j);                                   
+ 419   4              *(pIndex+j) = *(pIndex+j+1);
+ 420   4              *(pIndex+j+1) = temp_index;                                     
+ 421   4            }                                                                                                         
+ 422   3          }                                                                                                           
+ 423   2          k++;                                                                                                        
+ 424   2        }     
+C51 COMPILER V8.04b   ROUTINES                                                             03/17/2010 10:20:44 PAGE 8   
+
+ 425   1      }
+ 426          
+ 427          void SortAlgorithm_unsigned(unsigned int *pType, char *pIndex, char loop)
+ 428          {
+ 429   1        char idata k, i, j, temp_index;
+ 430   1        unsigned int idata temp_type;
+ 431   1        
+ 432   1        k=1;
+ 433   1      
+ 434   1        for(i=0; i<loop-1; i++)                                                                       
+ 435   1        {                                                                                                                     
+ 436   2          for(j=0; j<loop-k; j++)                                                                     
+ 437   2          {                                                                                                           
+ 438   3            if(*(pType+j+1) > *(pType+j))                     
+ 439   3            {                                                                                                         
+ 440   4                  // sort diff voltage                                                                
+ 441   4                  temp_type = *(pType+j);                                             
+ 442   4              *(pType+j) = *(pType+j+1);                      
+ 443   4              *(pType+j+1) = temp_type;                                               
+ 444   4      
+ 445   4              // sort diff voltage index                                                      
+ 446   4                  temp_index = *(pIndex+j);                                   
+ 447   4              *(pIndex+j) = *(pIndex+j+1);
+ 448   4              *(pIndex+j+1) = temp_index;                                     
+ 449   4            }                                                                                                         
+ 450   3          }                                                                                                           
+ 451   2          k++;                                                                                                        
+ 452   2        }     
+ 453   1      }
+ 454          
+ 455          void GetAndSortTemperature(SlaveData *pSlaveData)
+ 456          {
+ 457   1        // initialization     of Temp 0  
+ 458   1        pSlaveData->Temp[0] = pSlaveData->T_R5;         pSlaveData->TempIndex[0] = 1; 
+ 459   1        // initialization     of Temp 1  
+ 460   1        pSlaveData->Temp[1] = pSlaveData->T_R6;         pSlaveData->TempIndex[1] = 2; 
+ 461   1        // initialization     of Temp 2                                 
+ 462   1        pSlaveData->Temp[2] = pSlaveData->T_R7;         pSlaveData->TempIndex[2] = 3;  
+ 463   1        // initialization     of Temp 3
+ 464   1        pSlaveData->Temp[3] = pSlaveData->T_Rboard; pSlaveData->TempIndex[3] = 4;
+ 465   1      
+ 466   1        // sort signed all temperatures
+ 467   1        SortAlgorithm_signed((int *)&pSlaveData->Temp[0], &pSlaveData->TempIndex[0], TempSensors);
+ 468   1      
+ 469   1        // temp max
+ 470   1        pSlaveData->Tmax = pSlaveData->Temp[0];
+ 471   1        // temp min
+ 472   1        pSlaveData->Tmin = pSlaveData->Temp[TempSensors-1];  
+ 473   1      }
+ 474          
+ 475          // = In-BlockBalancing                                             
+ 476          void TopBalancing(SlaveData *pSlaveData)
+ 477          {
+ 478   1         char idata pause, CellNo;
+ 479   1        
+ 480   1         // disable Interrupts
+ 481   1         EA = 0;
+ 482   1      
+ 483   1         CellNo = pSlaveData->BalanceCellIndex[0];
+ 484   1      //***********************************
+ 485   1      //                        NEW
+ 486   1      //***********************************
+C51 COMPILER V8.04b   ROUTINES                                                             03/17/2010 10:20:44 PAGE 9   
+
+ 487   1      /*
+ 488   1         PrimH_Off();
+ 489   1         // switch port pin on
+ 490   1         SekOn[pSlaveData->BalanceCellIndex[0]]();
+ 491   1         // wait 
+ 492   1         TTick(pause=0, pause<TopSekPulse, pause++, _nop_());
+ 493   1         // primH on
+ 494   1         PrimH_On();
+ 495   1         // delay
+ 496   1         DELAY_10();
+ 497   1         // deactivate sek
+ 498   1         SekOff[pSlaveData->BalanceCellIndex[0]]();
+ 499   1      */
+ 500   1         
+ 501   1        
+ 502   1         switch( CellNo )
+ 503   1         {
+ 504   2           case 0:  //PrimH_Off();
+ 505   2                    // switch port pin on
+ 506   2                    SekOn_0();
+ 507   2                    // wait 
+ 508   2                    TTick(pause=0, pause<TopSekPulse, pause++, _nop_());
+ 509   2                    // primH on
+ 510   2                    PrimH_On();
+ 511   2                                // delay
+ 512   2                                DELAY_10();
+ 513   2                        // deactivate sek
+ 514   2                        SekOff_0();
+ 515   2                    break;
+ 516   2      
+ 517   2           case 1:  //PrimH_Off();
+ 518   2                    // switch port pin on     
+ 519   2                    SekOn_1(); 
+ 520   2                    // wait 
+ 521   2                    TTick(pause=0, pause<TopSekPulse, pause++, _nop_());
+ 522   2                    // primH on
+ 523   2                    PrimH_On();
+ 524   2                                // delay
+ 525   2                                DELAY_10();
+ 526   2                        // deactivate sek
+ 527   2                        SekOff_1();
+ 528   2                    break;
+ 529   2      
+ 530   2           case 2:  //PrimH_Off();
+ 531   2                    // switch port pin on     
+ 532   2                    SekOn_2();
+ 533   2                    // wait 
+ 534   2                    TTick(pause=0, pause<TopSekPulse, pause++, _nop_());
+ 535   2                    // primH on
+ 536   2                    PrimH_On();
+ 537   2                                // delay
+ 538   2                                DELAY_10();
+ 539   2                        // deactivate sek
+ 540   2                        SekOff_2();      
+ 541   2                    break;
+ 542   2      
+ 543   2           case 3:  //PrimH_Off();
+ 544   2                    // switch port pin on     
+ 545   2                    SekOn_3();
+ 546   2                    // wait 
+ 547   2                    TTick(pause=0, pause<TopSekPulse, pause++, _nop_());
+ 548   2                    // primH on
+C51 COMPILER V8.04b   ROUTINES                                                             03/17/2010 10:20:44 PAGE 10  
+
+ 549   2                    PrimH_On();
+ 550   2                                // delay
+ 551   2                                DELAY_10();
+ 552   2                        // deactivate sek
+ 553   2                        SekOff_3();             
+ 554   2                    break;
+ 555   2      
+ 556   2           case 4:  //PrimH_Off();
+ 557   2                    // switch port pin on     
+ 558   2                    SekOn_4();  
+ 559   2                    // wait 
+ 560   2                    TTick(pause=0, pause<TopSekPulse, pause++, _nop_());
+ 561   2                    // primH on
+ 562   2                    PrimH_On();
+ 563   2                                // delay
+ 564   2                                DELAY_10();
+ 565   2                        // deactivate sek
+ 566   2                        SekOff_4();
+ 567   2                    break;
+ 568   2      
+ 569   2           case 5:  //PrimH_Off();
+ 570   2                    // switch port pin on     
+ 571   2                    SekOn_5();
+ 572   2                    // wait 
+ 573   2                    TTick(pause=0, pause<TopSekPulse, pause++, _nop_());
+ 574   2                    // primH on
+ 575   2                    PrimH_On();
+ 576   2                                // delay
+ 577   2                                DELAY_10();
+ 578   2                        // deactivate sek
+ 579   2                        SekOff_5();             
+ 580   2                    break;
+ 581   2      
+ 582   2           case 6:  //PrimH_Off();
+ 583   2                    // switch port pin on     
+ 584   2                    SekOn_6();
+ 585   2                    // wait 
+ 586   2                    TTick(pause=0, pause<TopSekPulse, pause++, _nop_());
+ 587   2                    // primH on
+ 588   2                    PrimH_On();
+ 589   2                                // delay
+ 590   2                                DELAY_10();
+ 591   2                        // deactivate sek
+ 592   2                        SekOff_6();             
+ 593   2                    break;
+ 594   2      
+ 595   2          case 7:   //PrimH_Off();
+ 596   2                    // switch port pin on     
+ 597   2                    SekOn_7();
+ 598   2                    // wait 
+ 599   2                    TTick(pause=0, pause<TopSekPulse, pause++, _nop_());
+ 600   2                    // primH on
+ 601   2                    PrimH_On();
+ 602   2                                // delay
+ 603   2                                DELAY_10();
+ 604   2                        // deactivate sek
+ 605   2                        SekOff_7();             
+ 606   2                    break;
+ 607   2      
+ 608   2          case 8:   //PrimH_Off();
+ 609   2                    // switch port pin on     
+ 610   2                    SekOn_8(); 
+C51 COMPILER V8.04b   ROUTINES                                                             03/17/2010 10:20:44 PAGE 11  
+
+ 611   2                    // wait 
+ 612   2                    TTick(pause=0, pause<TopSekPulse, pause++, _nop_());
+ 613   2                    // primH on
+ 614   2                    PrimH_On();
+ 615   2                                // delay
+ 616   2                                DELAY_10();
+ 617   2                        // deactivate sek
+ 618   2                        SekOff_8();            
+ 619   2                    break;
+ 620   2      
+ 621   2          case 9:   //PrimH_Off();
+ 622   2                    // switch port pin on     
+ 623   2                    SekOn_9();
+ 624   2                    // wait 
+ 625   2                    TTick(pause=0, pause<TopSekPulse, pause++, _nop_());
+ 626   2                    // primH on
+ 627   2                    PrimH_On();
+ 628   2                                // delay
+ 629   2                                DELAY_10();
+ 630   2                        // deactivate sek
+ 631   2                        SekOff_9();            
+ 632   2                    break;
+ 633   2      
+ 634   2          case 10:  // primH off
+ 635   2                    //PrimH_Off();    
+ 636   2                    // switch port pin on     
+ 637   2                    SekOn_10();
+ 638   2                    // wait 
+ 639   2                    TTick(pause=0, pause<TopSekPulse, pause++, _nop_());
+ 640   2                    // primH on
+ 641   2                    PrimH_On();
+ 642   2                                // delay
+ 643   2                                DELAY_10();
+ 644   2                        // deactivate sek
+ 645   2                        SekOff_10();           
+ 646   2                    break;
+ 647   2      
+ 648   2          case 11:  // primH off
+ 649   2                    //PrimH_Off();
+ 650   2                    // switch port pin on     
+ 651   2                    SekOn_11();
+ 652   2                    // wait 
+ 653   2                    TTick(pause=0, pause<TopSekPulse, pause++, _nop_());
+ 654   2                    // primH on
+ 655   2                    PrimH_On();
+ 656   2                                // delay
+ 657   2                                DELAY_10();
+ 658   2                        // deactivate sek
+ 659   2                        SekOff_11();           
+ 660   2                    break;
+ 661   2              default: break;
+ 662   2         }
+ 663   1      
+ 664   1         // Prim On
+ 665   1         PrimOn();
+ 666   1         // wait 
+ 667   1         TTick(pause=0, pause<TopPrimPulse, pause++, _nop_());
+ 668   1       
+ 669   1      PrimH_Off();
+ 670   1      
+ 671   1         // Prim Off
+ 672   1         PrimOff();
+C51 COMPILER V8.04b   ROUTINES                                                             03/17/2010 10:20:44 PAGE 12  
+
+ 673   1      
+ 674   1         // enable Interrupts
+ 675   1         EA = 1;
+ 676   1      }
+ 677             
+ 678              
+ 679          void InterBlockTopBalancing(SlaveData *pSlaveData)
+ 680          {
+ 681   1         char idata pause;
+ 682   1        
+ 683   1         // disable Interrupts
+ 684   1         EA = 0;
+ 685   1         // primH permanent low
+ 686   1         PrimH_Off();
+ 687   1      
+ 688   1      //***********************************
+ 689   1      //                        NEW
+ 690   1      //***********************************
+ 691   1      /*
+ 692   1         // switch port pin on
+ 693   1         SekOn[pSlaveData->BalanceCellIndex[0]]();
+ 694   1         // wait
+ 695   1         TTick(pause=0, pause<InterSekPulse, pause++, _nop_());
+ 696   1         // deactivate sek
+ 697   1         SekOff[pSlaveData->BalanceCellIndex[0]]();
+ 698   1      */      
+ 699   1         
+ 700   1         switch( pSlaveData->BalanceCellIndex[0] )
+ 701   1         {
+ 702   2           case 0:  // switch port pin on
+ 703   2                    SekOn_0();
+ 704   2                    // wait
+ 705   2                    TTick(pause=0, pause<InterSekPulse, pause++, _nop_());
+ 706   2                        // deactivate sek
+ 707   2                        SekOff_0();
+ 708   2                    break;
+ 709   2      
+ 710   2           case 1:  // switch port pin on     
+ 711   2                    SekOn_1(); 
+ 712   2                    // wait 
+ 713   2                    TTick(pause=0, pause<InterSekPulse, pause++, _nop_());
+ 714   2                        // deactivate sek
+ 715   2                        SekOff_1();
+ 716   2                    break;
+ 717   2      
+ 718   2           case 2:  // switch port pin on     
+ 719   2                    SekOn_2();
+ 720   2                    // wait 
+ 721   2                    TTick(pause=0, pause<InterSekPulse, pause++, _nop_());
+ 722   2                        // deactivate sek
+ 723   2                        SekOff_2();      
+ 724   2                    break;
+ 725   2      
+ 726   2           case 3:  // switch port pin on     
+ 727   2                    SekOn_3();
+ 728   2                    // wait 
+ 729   2                    TTick(pause=0, pause<InterSekPulse, pause++, _nop_());
+ 730   2                        // deactivate sek
+ 731   2                        SekOff_3();             
+ 732   2                    break;
+ 733   2      
+ 734   2           case 4:  // switch port pin on     
+C51 COMPILER V8.04b   ROUTINES                                                             03/17/2010 10:20:44 PAGE 13  
+
+ 735   2                    SekOn_4();  
+ 736   2                    // wait 
+ 737   2                    TTick(pause=0, pause<InterSekPulse, pause++, _nop_());
+ 738   2                        // deactivate sek
+ 739   2                        SekOff_4();
+ 740   2                    break;
+ 741   2      
+ 742   2           case 5:  // switch port pin on     
+ 743   2                    SekOn_5();
+ 744   2                    // wait 
+ 745   2                    TTick(pause=0, pause<InterSekPulse, pause++, _nop_());
+ 746   2                        // deactivate sek
+ 747   2                        SekOff_5();             
+ 748   2                    break;
+ 749   2      
+ 750   2           case 6:  // switch port pin on     
+ 751   2                    SekOn_6();
+ 752   2                    // wait 
+ 753   2                    TTick(pause=0, pause<InterSekPulse, pause++, _nop_());
+ 754   2                        // deactivate sek
+ 755   2                        SekOff_6();             
+ 756   2                    break;
+ 757   2      
+ 758   2          case 7:   // switch port pin on     
+ 759   2                    SekOn_7();
+ 760   2                    // wait 
+ 761   2                    TTick(pause=0, pause<InterSekPulse, pause++, _nop_());
+ 762   2                        // deactivate sek
+ 763   2                        SekOff_7();             
+ 764   2                    break;
+ 765   2      
+ 766   2          case 8:   // switch port pin on     
+ 767   2                    SekOn_8(); 
+ 768   2                    // wait 
+ 769   2                    TTick(pause=0, pause<InterSekPulse, pause++, _nop_());
+ 770   2                        // deactivate sek
+ 771   2                        SekOff_8();            
+ 772   2                    break;
+ 773   2      
+ 774   2          case 9:   // switch port pin on     
+ 775   2                    SekOn_9();
+ 776   2                    // wait 
+ 777   2                    TTick(pause=0, pause<InterSekPulse, pause++, _nop_());
+ 778   2                        // deactivate sek
+ 779   2                        SekOff_9();            
+ 780   2                    break;
+ 781   2      
+ 782   2          case 10:  // switch port pin on     
+ 783   2                    SekOn_10();
+ 784   2                    // wait 
+ 785   2                    TTick(pause=0, pause<InterSekPulse, pause++, _nop_());
+ 786   2                        // deactivate sek
+ 787   2                        SekOff_10();           
+ 788   2                    break;
+ 789   2      
+ 790   2          case 11:  // switch port pin on     
+ 791   2                    SekOn_11();
+ 792   2                    // wait 
+ 793   2                    TTick(pause=0, pause<InterSekPulse, pause++, _nop_());
+ 794   2                        // deactivate sek
+ 795   2                        SekOff_11();           
+ 796   2                    break;
+C51 COMPILER V8.04b   ROUTINES                                                             03/17/2010 10:20:44 PAGE 14  
+
+ 797   2      
+ 798   2              default: break;
+ 799   2         }
+ 800   1      
+ 801   1         // Prim On
+ 802   1         PrimOn();   
+ 803   1         // wait
+ 804   1         TTick(pause=0, pause<InterPrimPulse, pause++, _nop_());
+ 805   1         // Prim Off
+ 806   1         PrimOff();   
+ 807   1         // enable Interrupts
+ 808   1         EA = 1;
+ 809   1      }
+ 810          
+ 811          void BottomBalancing(SlaveData *pSlaveData)
+ 812          {
+ 813   1         char idata pause;
+ 814   1         
+ 815   1         // disable Interrupts
+ 816   1         EA = 0;
+ 817   1         
+ 818   1         // Prim On
+ 819   1         PrimH_On();   
+ 820   1         PrimOn();
+ 821   1         // wait
+ 822   1         TTick(pause=0, pause<BottomPrimPulse, pause++, _nop_());
+ 823   1      
+ 824   1      //***********************************
+ 825   1      //                        NEW
+ 826   1      //***********************************
+ 827   1      /*
+ 828   1         // Prin Off - Sek On    
+ 829   1         PrimOff();
+ 830   1         PrimH_Off();
+ 831   1         // activate sek
+ 832   1         SekOn[pSlaveData->BalanceCellIndex[pSlaveData->LowestCellIndex]]();              
+ 833   1         // wait
+ 834   1         TTick(pause=0, pause<BottomSekPulse, pause++, _nop_());               
+ 835   1         // deactivate sek
+ 836   1         SekOff[pSlaveData->BalanceCellIndex[pSlaveData->LowestCellIndex]]();
+ 837   1      */
+ 838   1      
+ 839   1         switch( pSlaveData->BalanceCellIndex[pSlaveData->LowestCellIndex] )
+ 840   1         {
+ 841   2           case 0:  // Prin Off - Sek On    
+ 842   2                    PrimOff();
+ 843   2                    PrimH_Off();
+ 844   2                                // activate sek
+ 845   2                    SekOn_0();              
+ 846   2                    // wait
+ 847   2                    TTick(pause=0, pause<BottomSekPulse, pause++, _nop_());               
+ 848   2                                // deactivate sek
+ 849   2                                SekOff_0();
+ 850   2                    break;
+ 851   2      
+ 852   2           case 1:  // Prin Off - Sek On                 
+ 853   2                    PrimOff();
+ 854   2                    PrimH_Off();
+ 855   2                                // activate sek
+ 856   2                    SekOn_1();
+ 857   2                    // wait 
+ 858   2                    TTick(pause=0, pause<BottomSekPulse, pause++, _nop_());               
+C51 COMPILER V8.04b   ROUTINES                                                             03/17/2010 10:20:44 PAGE 15  
+
+ 859   2                                // deactivate sek
+ 860   2                                SekOff_1();
+ 861   2                              
+ 862   2                    break;
+ 863   2      
+ 864   2           case 2:  // Prin Off - Sek On                 
+ 865   2                    PrimOff();
+ 866   2                    PrimH_Off();
+ 867   2                                // activate sek
+ 868   2                    SekOn_2();
+ 869   2                    // wait 
+ 870   2                    TTick(pause=0, pause<BottomSekPulse, pause++, _nop_());               
+ 871   2                                // deactivate sek
+ 872   2                                SekOff_2();
+ 873   2                    
+ 874   2                    break;
+ 875   2      
+ 876   2           case 3:  // Prin Off - Sek On    
+ 877   2                    PrimOff();
+ 878   2                    PrimH_Off();
+ 879   2                                // activate sek
+ 880   2                    SekOn_3();
+ 881   2                    // wait 
+ 882   2                    TTick(pause=0, pause<BottomSekPulse, pause++, _nop_());               
+ 883   2                                // deactivate sek
+ 884   2                                SekOff_3();
+ 885   2                                                                 
+ 886   2                    break;
+ 887   2      
+ 888   2           case 4:  // Prin Off - Sek On    
+ 889   2                    PrimOff();
+ 890   2                    PrimH_Off();
+ 891   2                                // activate sek
+ 892   2                    SekOn_4();
+ 893   2                    // wait
+ 894   2                    TTick(pause=0, pause<BottomSekPulse, pause++, _nop_());               
+ 895   2                                // deactivate sek
+ 896   2                                SekOff_4();                        
+ 897   2                    
+ 898   2                    break;
+ 899   2      
+ 900   2           case 5:  // Prin Off - Sek On    
+ 901   2                    PrimOff();
+ 902   2                    PrimH_Off();
+ 903   2                    // activate sek
+ 904   2                    SekOn_5();
+ 905   2                    // wait
+ 906   2                    TTick(pause=0, pause<BottomSekPulse, pause++, _nop_());               
+ 907   2                                // deactivate sek
+ 908   2                                SekOff_5();
+ 909   2                    
+ 910   2                    break;
+ 911   2      
+ 912   2           case 6:  // Prin Off - Sek On    
+ 913   2                    PrimOff();
+ 914   2                    PrimH_Off();
+ 915   2                                // activate sek
+ 916   2                    SekOn_6();
+ 917   2                    // wait
+ 918   2                    TTick(pause=0, pause<BottomSekPulse, pause++, _nop_());               
+ 919   2                                // deactivate sek
+ 920   2                                SekOff_6();
+C51 COMPILER V8.04b   ROUTINES                                                             03/17/2010 10:20:44 PAGE 16  
+
+ 921   2                              
+ 922   2                    break;
+ 923   2      
+ 924   2           case 7:  // Prin Off - Sek On    
+ 925   2                    PrimOff();
+ 926   2                    PrimH_Off();
+ 927   2                    // activate sek
+ 928   2                    SekOn_7();
+ 929   2                    // wait
+ 930   2                    TTick(pause=0, pause<BottomSekPulse, pause++, _nop_());               
+ 931   2                                // deactivate sek
+ 932   2                                SekOff_7();
+ 933   2                              
+ 934   2                    break;
+ 935   2      
+ 936   2           case 8:  // Prin Off - Sek On    
+ 937   2                    PrimOff();
+ 938   2                    PrimH_Off();
+ 939   2                                // activate sek
+ 940   2                    SekOn_8();
+ 941   2                    // wait
+ 942   2                    TTick(pause=0, pause<BottomSekPulse, pause++, _nop_());               
+ 943   2                                // deactivate sek
+ 944   2                                SekOff_8();
+ 945   2                              
+ 946   2                    break;
+ 947   2      
+ 948   2           case 9:  // Prin Off - Sek On    
+ 949   2                    PrimOff();
+ 950   2                    PrimH_Off();
+ 951   2                    // activate sek
+ 952   2                    SekOn_9();
+ 953   2                    // wait
+ 954   2                    TTick(pause=0, pause<BottomSekPulse, pause++, _nop_());               
+ 955   2                                // deactivate sek
+ 956   2                                SekOff_9();
+ 957   2                    
+ 958   2                    break;
+ 959   2      
+ 960   2           case 10: // Prin Off - Sek On    
+ 961   2                    PrimOff();
+ 962   2                    PrimH_Off();
+ 963   2                                // activate sek
+ 964   2                    SekOn_10();             
+ 965   2                    // wait
+ 966   2                    TTick(pause=0, pause<BottomSekPulse, pause++, _nop_());               
+ 967   2                                // deactivate sek
+ 968   2                                SekOff_10();
+ 969   2                    
+ 970   2                    break;
+ 971   2      
+ 972   2           case 11:// Prin Off - Sek On    
+ 973   2                    PrimOff();
+ 974   2                    PrimH_Off();
+ 975   2                                // activate sek
+ 976   2                    SekOn_11();              
+ 977   2                    // wait
+ 978   2                    TTick(pause=0, pause<BottomSekPulse, pause++, _nop_());               
+ 979   2                                // deactivate sek
+ 980   2                                SekOff_11();
+ 981   2                    
+ 982   2                    break;
+C51 COMPILER V8.04b   ROUTINES                                                             03/17/2010 10:20:44 PAGE 17  
+
+ 983   2      
+ 984   2               default: break;
+ 985   2         }   
+ 986   1      
+ 987   1         // enable Interrupts   
+ 988   1         EA = 1;
+ 989   1      }
+ 990          
+ 991          void DummyBalancing(SlaveData *pSlaveData)
+ 992          {
+ 993   1         char idata pause;
+ 994   1         
+ 995   1         // disable Interrupts
+ 996   1         EA = 0;
+ 997   1         // dummy
+ 998   1         _nop_();   
+ 999   1         _nop_();
+1000   1         // wait
+1001   1         TTick(pause=0, pause<BottomPrimPulse, pause++, _nop_());
+1002   1         // dummy    
+1003   1         _nop_();   
+1004   1         _nop_();
+1005   1         // wait
+1006   1         TTick(pause=0, pause<BottomSekPulse, pause++, _nop_());               
+1007   1         // enable Interrupts   
+1008   1         EA = 1;
+1009   1      }
+*** WARNING C280 IN LINE 991 OF ROUTINES.C: 'pSlaveData': unreferenced local variable
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2977    ----
+   CONSTANT SIZE    =     87    ----
+   XDATA SIZE       =     84      32
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----      23
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

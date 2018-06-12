@@ -1,0 +1,173 @@
+C51 COMPILER V8.04b   MEMORYXC8                                                            03/17/2010 10:20:44 PAGE 1   
+
+
+C51 COMPILER V8.04b, COMPILATION OF MODULE MEMORYXC8
+OBJECT MODULE PLACED IN MemoryXC8.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE MemoryXC8.c LARGE OBJECTADVANCED OPTIMIZE(9,SPEED) BROWSE ORDER DEFINE(SLAV
+                    -E_BOARDS,PRINT_ERROR,PRINT_WARNING,PRINT,PANASONIC_12_CELLS) DEBUG
+
+line level    source
+
+   1          //****************************************************************************
+   2          // File Name     MemoryXC8.c
+   3          // Author        Andreas Jansen, Infineon Technologies
+   4          //----------------------------------------------------------------------------
+   5          // Derivatives   Infineon XC866
+   6          //
+   7          // Description   Sets of function to handle the memory in the XC866.
+   8          //               In particular, the EEPROM handling is taken care of here.
+   9          //
+  10          //----------------------------------------------------------------------------
+  11          // Date          25.01.2005 10:48:38
+  12          // Copyright     (c) 2005 Infineon Technologies
+  13          //****************************************************************************
+  14          
+  15          #include "MemoryXC8.h"
+  16          #include "MAIN.H"
+  17          
+  18          
+  19          // Buffer for the 32byte data before being written to eEPROM
+  20          //GKunsigned char idata WLBuf[BYTES_PER_WORDLINE];
+  21          
+  22          // **************************************************************************
+  23          // Function Name:    void LoadXD2WLBuf (unsigned char xdata *address)
+  24          // Description:      Load  32byte of data from the XDATA to the WLBuf
+  25          //                   WLBuf is a buffer that is located in the IDATA-space
+  26          // Input Parameter:  *address ==>  pointer to the address
+  27          //                                                                 in the XDATA memory
+  28          // Output Parameter: none
+  29          void LoadXD2WLBuf(unsigned char xdata *address)
+  30          {
+  31   1      // Loads Wordline Buffer with 32bytes from given address in XDATA
+  32   1      unsigned char i;
+  33   1              for (i=0; i<BYTES_PER_WORDLINE; i++) 
+  34   1              { WLBuf[i] = *address++;
+  35   2              }
+  36   1      }
+  37          
+  38          
+  39          // ***********************************************************************
+  40          // Function Name:    void LoadConst2WLBuf (unsigned char code *address)
+  41          // Description:      Load 32byte of data from the CODE to the WLBuf
+  42          //                   WLBuf is a buffer that is located in the IDATA-space
+  43          // Input Parameter:  *address ==>  pointer to the address
+  44          //                                                                 in the CODE memory
+  45          // Output Parameter: none
+  46          //GKvoid LoadConst2WLBuf(unsigned char code *address)
+  47          //GK{
+  48          //GK// Loads Wordline Buffer with 32bytes from given address in CODE
+  49          //GKunsigned char i;
+  50          //GK    for (i=0; i<BYTES_PER_WORDLINE; i++) 
+  51          //GK    { WLBuf[i] = *address++;
+  52          //GK    }
+  53          //GK}
+  54          
+C51 COMPILER V8.04b   MEMORYXC8                                                            03/17/2010 10:20:44 PAGE 2   
+
+  55          
+  56          // *************************************************************************************
+  57          // Function Name:    void LoadConst2XD (unsigned char xdata *dstaddress, 
+  58          //                   unsigned char code *srcaddress, unsigned int length)
+  59          // Description:      Copy the data from the CODE memory to XDATA memory
+  60          // Input Parameter:  *srcaddress ==> pointer to the location in the FLASH/EEPROM.
+  61          //                   lenght      ==> The number of byte to be copied
+  62          // Output Parameter: *dstaddress ==> pointer to the location in the XDATA memory.
+  63          //                                   The data will be copied to this location
+  64          //GKvoid LoadConst2XD(unsigned char xdata *dstaddress, unsigned char code *srcaddress, unsigned int length
+             -)
+  65          //GK{
+  66          //GK// Loads number of constants to XDATA at given addresses
+  67          //GKunsigned int i;
+  68          //GK    for (i=0; i<length; i++) 
+  69          //GK    { *dstaddress++ = *srcaddress++;
+  70          //GK    }
+  71          //GK}
+  72          
+  73          // *************************************************************************************
+  74          // Function Name:    void LoadXD2XD (unsigned char xdata *dstaddress, 
+  75          //                   unsigned char xdata *srcaddress, unsigned int length)
+  76          // Description:      Copy the data from the XDATA memory to XDATA memory
+  77          // Input Parameter:  *srcaddress ==> pointer to the location in the XDATA memory.
+  78          //                                   No byte alignment is necessary
+  79          //                   lenght      ==> The number of byte to be copied
+  80          // Output Parameter: *dstaddress ==> pointer to the location in the XDATA memory.
+  81          //                                   The data will be copied to this location
+  82          //GKvoid LoadXD2XD(unsigned char xdata *dstaddress, unsigned char xdata *srcaddress, unsigned int length)
+  83          //GK{
+  84          //GK// Copies number of bytes in XDATA to XDATA at given addresses
+  85          //GKunsigned int i;
+  86          //GK    for (i=0; i<length; i++) 
+  87          //GK    { *dstaddress++ = *srcaddress++;
+  88          //GK    }
+  89          //GK}
+  90          
+  91          // *************************************************************************************
+  92          // Function Name:    unsigned char ReadIdata (unsigned char idata *address) 
+  93          // Description:      Read from IDATA memory
+  94          // Input Parameter:  *address ==> pointer to the location in the IDATA memory.
+  95          //                                No byte alignment is necessary
+  96          // Return Value:         Data Byte
+  97          //GKunsigned char ReadIdata(unsigned char idata *address)
+  98          //GK{
+  99          //GK// Read Idata at given address
+ 100          //GKreturn (*address);
+ 101          //GK}
+ 102          
+ 103          
+ 104          //
+ 105          // .......... wichtig ..........
+ 106          //                               |
+ 107          
+ 108          // **************************************************************************************
+ 109          // Function Name:    void ProgWL (unsigned char code *AdrBnkXSecYWLZ)
+ 110          // Description:      Program the data from the WLBuf to the location in the EEPROM
+ 111          //                   which is pointed by *ADrBnkXSecYWLZ
+ 112          // Input Parameter:  *AdrBnkXSecYWLZ ==> pointer to the location in the EEPROM.
+ 113          //                                       The address must be aligned to a 32byte boundary
+ 114          // Output Parameter: none 
+ 115          bit ProgWL(unsigned char code *AdrBnkXSecYWLZ)
+C51 COMPILER V8.04b   MEMORYXC8                                                            03/17/2010 10:20:44 PAGE 3   
+
+ 116          {
+ 117   1          unsigned int i;
+ 118   1              
+ 119   1              i = AdrBnkXSecYWLZ;
+ 120   1              MEM_DPH = i>>8;
+ 121   1              MEM_DPL = i;
+ 122   1              //_FlProg(SrcBuf);
+ 123   1              return FlProg(&WLBuf[0]);
+ 124   1      }
+ 125          
+ 126          // *************************************************************************************
+ 127          // Function Name:    unsigned char ReadConst (unsigned char const *address) 
+ 128          // Description:      Read from CODE memory
+ 129          // Input Parameter:  *address ==> pointer to the location in the CODE memory.
+ 130          //                                No byte alignment is necessary
+ 131          // Return Value:         Data Byte
+ 132          //GKunsigned char ReadConst(unsigned char code *address)
+ 133          //GK{
+ 134          //GK    return (*address);
+ 135          //GK}
+ 136          
+ 137          //GKunsigned int ReadInt(unsigned int code *address)
+ 138          //GK{
+ 139          //GK    return (*address);
+ 140          //GK}
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     48    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

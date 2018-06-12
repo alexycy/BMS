@@ -1,0 +1,470 @@
+AX51 MACRO ASSEMBLER  START_XC                                                              03/17/10 10:20:43 PAGE     1
+
+
+MACRO ASSEMBLER AX51 V3.01
+OBJECT MODULE PLACED IN START_XC.OBJ
+ASSEMBLER INVOKED BY: C:\Keil\C51\BIN\AX51.EXE START_XC.A51 SET(LARGE) DEBUG EP
+
+LOC    OBJ             LINE     SOURCE
+
+                          1     $nomod51 
+                          2     ;------------------------------------------------------------------------------
+                          3     ;  AJ
+                          4     ;  This file is part of the C51 Compiler package
+                          5     ;  Startup Code for the Infineon XC8xx devices 
+                          6     ;  Copyright (c) 1988-2005 Keil Elektronik GmbH and Keil Software, Inc.
+                          7     ;  Version 1.00
+                          8     ;
+                          9     ;  *** <<< Use Configuration Wizard in Context Menu >>> ***
+                         10     ;------------------------------------------------------------------------------
+                         11     ;  STARTUP.A51:  This code is executed after processor reset.
+                         12     ;
+                         13     ;  To translate this file use A51 with the following invocation:
+                         14     ;
+                         15     ;     A51 STARTUP.A51
+                         16     ;
+                         17     ;  To link the modified STARTUP.OBJ file to your application use the following
+                         18     ;  Lx51 invocation:
+                         19     ;
+                         20     ;     Lx51 your object file list, STARTUP.OBJ  controls
+                         21     ;
+                         22     ;------------------------------------------------------------------------------
+                         23     ;
+                         24     ;<e> Use off-chip XTAL
+                         25     ;<i> XC8xx series runs by default from on-chip oscillator.
+                         26     ;<i> optionally you may use a off-chip XTAL
+                         27     ;
+ 0001                    28     XTAL          EQU     1   ; set to 1 for off-chip XTAL
+                         29     ;
+                         30     ;---------------------------------------------------------------------
+                         31     ;resulting in fsys = 80MHz for XC866 and fsys = 96MHz for XC88x unless otherwise mention
+                               ed
+                         32     ;
+                         33     ;<e> Device = " XC866 "
+ 0000                    34     XC866_CHIP    EQU   0
+                         35     ;
+                         36     ; <o> PLL N-Divider
+                         37     ; <0=>  N=14
+                         38     ; <1=>  N=15
+                         39     ; <2=>  N=16 (10 MHz XTAL)
+                         40     ; <3=>  N=17
+                         41     ; <4=>  N=18
+                         42     ; <5=>  N=19
+                         43     ; <6=>  N=20 (8 MHz XTAL)
+                         44     ; <7=>  N=21
+                         45     ; <8=>  N=24
+                         46     ; <9=>  N=28
+                         47     ; <10=> N=30
+                         48     ; <11=> N=32 (5 MHz XTAL)
+                         49     ; <12=> N=40
+                         50     ; <13=> N=42
+                         51     ; <14=> N=45
+                         52     ; <15=> N=50
+                         53     ;
+ 0002                    54     NDIV_XC866    EQU     2   ; default 2
+                         55     ;</e>    
+                         56     
+                         57     ;---------------------------------------------------------------------
+AX51 MACRO ASSEMBLER  START_XC                                                              03/17/10 10:20:43 PAGE     2
+
+                         58     ;<e> Device = " XC88x "
+ 0001                    59     XC88x_CHIP    EQU   1
+                         60     ;
+                         61     ; <o> PLL N-Divider
+                         62     ; <0=>  N=10
+                         63     ; <1=>  N=12
+                         64     ; <2=>  N=13
+                         65     ; <3=>  N=14
+                         66     ; <4=>  N=15
+                         67     ; <5=>  N=16
+                         68     ; <6=>  N=17
+                         69     ; <7=>  N=18
+                         70     ; <8=>  N=19
+                         71     ; <9=>  N=20 (9.6 MHz On-Chip XTAL)
+                         72     ; <10=> N=24 (8 MHz Ext XTAL)
+                         73     ; <11=> N=30
+                         74     ; <12=> N=32(6 MHz  XTAL)
+                         75     ; <13=> N=36
+                         76     ; <14=> N=40
+                         77     ; <15=> N=48(4 MHz  XTAL)
+                         78     ;
+ 000A                    79     NDIV_XC88x    EQU       10   ; default 9 -> 10
+                         80     ;</e>
+                         81     
+                         82     
+                         83     ;------------------------------------------------------------------------------
+                         84     ;<e> Device = " XC878 "
+ 0000                    85     XC878_CHIP_16FF    EQU   0
+ 0000                    86     XC878_CHIP_13FF    EQU   0
+                         87     
+ 0018                    88     NDIV_XC878_PLL_CON        EQU     0x18    ; default 70,(PLL_CON_NDIV << 2)
+ 0000                    89     NDIV_XC878_PLL_CON1       EQU     0x00    ;         (PLL_CON1_NDIV << 5)
+ 0000                    90     NR_XC878                  EQU     0x00
+ 0000                    91     OD_XC878                  EQU     0x00    ;         (CMCON_KDIV << 6)
+                         92     ;</e>
+                         93     ;</e>
+                         94     ;------------------------------------------------------------------------------
+                         95     ;
+                         96     ;  User-defined <h> Power-On Initialization of Memory
+                         97     ;
+                         98     ;  With the following EQU statements the initialization of memory
+                         99     ;  at processor reset can be defined:
+                        100     ;
+                        101     ;<o> IDATA memory length <0x0-0x100>
+                        102     ;<i> Note: The absolute start-address of IDATA memory is always 0
+                        103     ;<i>       The IDATA space overlaps physically the DATA and BIT areas.
+ 0080                   104     IDATALEN        EQU     0x80
+                        105     ;
+                        106     ; <o> XDATA memory start address <0x0-0xFFFF> 
+                        107     ; <i> absolute start-address of XDATA memory
+ F000                   108     XDATASTART      EQU     0xF000      
+                        109     ;
+                        110     ; <o> XDATA memory length <0x0-0xFFFF> 
+                        111     ; <i> length of XDATA memory in bytes.
+                        112     IF (XC866_CHIP)
+                                    XDATALEN        EQU     0x200
+                                ELSEIF (XC88x_CHIP)
+ 0600                   115         XDATALEN        EQU     0x600
+                        116     ELSEIF (XC878_CHIP_16FF OR XC878_CHIP_13FF)
+                                    XDATALEN        EQU     0xC00
+                                ENDIF
+                        119     ;
+                        120     ; <o> PDATA memory start address <0x0-0xFFFF> 
+                        121     ; <i> absolute start-address of PDATA memory
+ F000                   122     PDATASTART      EQU     0xF000
+                        123     ;
+AX51 MACRO ASSEMBLER  START_XC                                                              03/17/10 10:20:43 PAGE     3
+
+                        124     ; <o> PDATA memory length <0x0-0xFF> 
+                        125     ; <i> length of PDATA memory in bytes.
+ 0000                   126     PDATALEN        EQU     0x0
+                        127     ;
+                        128     ; </h>
+                        129     ;------------------------------------------------------------------------------
+                        130     ;
+                        131     ; <h> Reentrant Stack Initilization
+                        132     ;
+                        133     ;  The following EQU statements define the stack pointer for reentrant
+                        134     ;  functions and initialized it:
+                        135     ;
+                        136     ; Stack Space for reentrant functions in the SMALL model.
+                        137     ; <e> Activate reentrant Stack (SMALL model)
+ 0000                   138     IBPSTACK        EQU     0       ; set to 1 if small reentrant is used.
+                        139     ; <o> top of stack <0x0-0xFF> 
+                        140     ; <i> set top of stack to highest location+1 
+ 0100                   141     IBPSTACKTOP     EQU     0xFF +1     ; default 0FFH+1  
+                        142     ; </e>
+                        143     ;
+                        144     ;  Stack Space for reentrant functions in the LARGE model.      
+                        145     ; <e> Activate reentrant Stack (LARGE model)
+ 0000                   146     XBPSTACK        EQU     0       ; set to 1 if large reentrant is used.
+                        147     ; <o> top of stack <0x0-0xFFFF> 
+                        148     ; <i> set top of stack to highest location+1.
+ 00010000               149     XBPSTACKTOP     EQU     0xFFFF +1   ; default 0FFFFH+1 
+                        150     ; </e>
+                        151     ;
+                        152     ;  Stack Space for reentrant functions in the COMPACT model.    
+                        153     ; <e> Activate reentrant Stack (COMPACT model)
+ 0000                   154     PBPSTACK        EQU     0       ; set to 1 if compact reentrant is used.
+                        155     ;
+                        156     ; <o> top of stack <0x0-0xFF> 
+                        157     ; <i> set top of stack to highest location+1.
+ 0100                   158     PBPSTACKTOP     EQU     0xFF +1     ; default 0FFH+1  
+                        159     ; </e>
+                        160     ; </h>
+                        161     ;------------------------------------------------------------------------------
+                        162     ;
+                        163     ;  <e>Set Memory Page for Using the Compact Model with 64 KByte xdata RAM
+                        164     ;
+                        165     ;  <i>Define the xdata page used for pdata variables. 
+                        166     ;  <i>PPAGE must conform with the PPAGE set in the linker invocation.
+                        167     ;
+                        168     ; Enable pdata memory page initalization
+ 0000                   169     PPAGEENABLE     EQU     0       ; set to 1 if pdata object are used.
+                        170     ;
+                        171     ; <o> PPAGE number <0x0-0xFF> 
+                        172     ; <i> uppermost 256-byte address of the page used for pdata variables.
+ 00F0                   173     PPAGE           EQU     0xF0
+                        174     ;
+                        175     ; </e>
+                        176     ;------------------------------------------------------------------------------
+                        177     ;Check the chip selection
+                        178     IF ((XC866_CHIP + XC88x_CHIP + XC878_CHIP_16FF + XC878_CHIP_13FF) > 1)
+                                      __ERROR__  "Please select only one chip!"
+                                ELSEIF ((XC866_CHIP + XC88x_CHIP + XC878_CHIP_16FF + XC878_CHIP_13FF) = 0)
+                                      __ERROR__  "Please select a chip!"
+                                ENDIF 
+                        183     IF (XTAL <> 0)
+                        184         IF (XC866_CHIP <> 0)
+                                       NDIV EQU NDIV_XC866   
+                                    ELSEIF (XC88x_CHIP <> 0)
+ 000A                   187            NDIV EQU NDIV_XC88x
+                        188         ELSEIF ((XC878_CHIP_16FF <> 0) OR (XC878_CHIP_13FF <> 0))
+                                       ;nothing
+AX51 MACRO ASSEMBLER  START_XC                                                              03/17/10 10:20:43 PAGE     4
+
+                                    ELSE
+                                      __WARNING__  "Default NDIV selection is XC866"
+                                      NDIV EQU NDIV_XC866  ;Default
+                                    ENDIF
+                        194     ENDIF                   ;End of XTAL selection
+                        195     
+                        196     ; Standard SFR Symbols 
+ 00E0                   197     ACC     DATA    0E0H
+ 00F0                   198     B       DATA    0F0H
+ 0081                   199     SP      DATA    81H
+ 0082                   200     DPL     DATA    82H
+ 0083                   201     DPH     DATA    83H
+                        202     
+                        203     ; XC8xx specific SFR Symbols used in STARTUP code
+  00BF                  204     sfr  SCU_PAGE = 0xBF
+  00B7                  205     sfr  PLL_CON  = 0xB7
+  00EA                  206     sfr  PLL_CON1 = 0xEA ;//SCU,RMAP=0,Page=1
+  00BA                  207     sfr  CMCON    = 0xBA
+  00B6                  208     sfr  OSC_CON  = 0xB6
+  00BB                  209     sfr  PASSWD   = 0xBB
+  00B3                  210     sfr  XADDRH   = 0xB3
+  0096                  211     sfr  MEX3     = 0x96
+                        212     
+                        213     
+                        214                     NAME    ?C_STARTUP
+                        215     
+                        216     
+------                  217     ?C_C51STARTUP   SEGMENT   CODE
+------                  218     ?STACK          SEGMENT   IDATA
+                        219     
+------                  220                     RSEG    ?STACK
+000000                  221                     DS      1
+                        222     
+                        223                     EXTRN CODE (?C_START)
+                        224                     PUBLIC  ?C_STARTUP
+                        225     
+000000                  226                     CSEG    AT      0
+000000 020000     F     227     ?C_STARTUP:     LJMP    STARTUP1
+                        228     
+------                  229                     RSEG    ?C_C51STARTUP
+                        230     
+000000                  231     STARTUP1:
+                        232     
+                        233     IF XTAL <> 0                                   ;Switch to external XTAL
+                        234             IF ((XC878_CHIP_16FF <> 0) OR (XC878_CHIP_13FF <> 0))
+                                                MOV     SCU_PAGE,#1;
+                                                MOV     PASSWD, #11000000B     ;Disable Bit-Protection
+                                                ORL     OSC_CON, #(0x01 << 6)  ;Bypass PLL Output ( PLLBYP = 1 )
+                                                ORL     OSC_CON, #(0x01 << 5)  ;Set PLL Power Down Mode ( PLLPD = 1)
+                                                ANL     OSC_CON, #~(0x01 << 3) ;XPD = 0, XTAL not powered down
+                                                          ; wait until XTAL is stable
+                                                          ; wait about 1.5 ms ( varies with oscillator freq )
+                                        WAIT_XTAL_STABLE:
+                                                MOV     R2,#0x1E   
+                                        LOOP:
+                                                MOV     R3,#0x64   
+                                                DJNZ    R3, $
+                                                DJNZ    R2, LOOP
+                                                ORL     OSC_CON, #(0x01 << 1)  ;Restart external oscillator watchdog
+                                                MOV     R0,#0x41               ;Wait for 65 cycles
+                                                DJNZ    R0, $
+                                        CHECK_EXTOSCR:
+                                                MOV     A, OSC_CON
+                                                JNB     ACC.0, CHECK_EXTOSCR        ;Wait till external oscillator run b
+                               it is set
+                                                ORL     OSC_CON, #(0x01 << 2)  ;Select external oscillator 
+AX51 MACRO ASSEMBLER  START_XC                                                              03/17/10 10:20:43 PAGE     5
+
+                                                MOV     PLL_CON,  #NDIV_XC878_PLL_CON      ; NDIV value 
+                                                MOV     PLL_CON1, #NDIV_XC878_PLL_CON1     ; NDIV Value 
+                                                MOV     A, #NR_XC878                       ; PDIV Value 
+                                                ORL     PLL_CON1, A                                     
+                                                MOV     A, #OD_XC878                       ; KDIV Value 
+                                                ORL     CMCON,    A                                     
+                                                ANL     OSC_CON, #~(0x01 << 5)  ;Change to PLL Normal Mode ( PLLPD = 0) 
+                                                ORL     OSC_CON, #(0x01 << 7)   ;Restart the PLL watchdog ( PLLRDRES = 1
+                               ) 
+                                
+                                        PLLNOTRUN:
+                                                MOV     A, PLL_CON
+                                                JNB     ACC.1, PLLNOTRUN           ;PLL_Run Status
+                                
+                                        PLLNOTLOCKED:
+                                                MOV     A, PLL_CON
+                                                JNB     ACC.0, PLLNOTLOCKED        ;PLL_Lock Status
+                                
+                                                ANL     OSC_CON, #~(0x01 << 6)     ;Disable bypass PLL output 
+                                                MOV     PASSWD, #11000011B         ;Enable Bit-Protection
+                                                MOV     SCU_PAGE,#0
+                                
+                                        ELSE
+000000 75BF01           277                     MOV     SCU_PAGE,#1
+000003 43B708           278                     ORL     PLL_CON, #0x08  ;VCOBYP = 1 
+000006 43B704           279                     ORL     PLL_CON, #0x04  ; OSCDISC = 1   _ _ _ NDIV, VCOBYP, OSCDISC, RES
+                               LD, LOCK
+000009 43B604           280                     ORL     OSC_CON, #0x04  ; OSCSS = 1     0, 0, 0, OSCPD, XPD, OSCSS, ORDR
+                               ES, OSCR
+00000C 53B6F7           281                     ANL     OSC_CON, #0xF7  ; XPD = 0       power xtal
+                        282                                     
+00000F 780A             283                     MOV     R0,#10          ; delay around 1.5 ms
+000011                  284             DelayXTAL:
+000011 D9FE             285                     DJNZ    R1,$
+000013 D8FC             286                     DJNZ    R0,DelayXTAL
+                        287                                             ; redetection of osc
+000015                  288            OSCR_NOTSET:
+000015 43B602           289                     ORL     OSC_CON, #0x02  ; ORDRES = 1
+000018                  290             WAIT_ORDRES_0:
+000018 E5B6             291                     MOV     A,OSC_CON
+00001A 20E1FB           292                     JB      ACC.1,WAIT_ORDRES_0  
+00001D 30E0F5           293                     JNB     ACC.0,OSCR_NOTSET    
+                        294             
+                        295                                                 ; VCOBYP to change N-Divider
+000020 43B708           296                     ORL     PLL_CON, #0x08      ; VCOBYP = 1
+000023 53B7FB           297                     ANL     PLL_CON, #0xFB      ; OSCDISC = 0
+000026 75BB98           298                     MOV     PASSWD,  #0x98      ; open access to writing protected bit
+000029 53B70F           299                     ANL     PLL_CON, #0x0F
+00002C 43B7A0           300                     ORL     PLL_CON, #NDIV*16
+                        301     
+00002F 43B702           302                     ORL     PLL_CON, #0x02     ; detect PLL lock
+000032                  303             WAIT_LOCK:
+000032 E5B7             304                     MOV     A, PLL_CON
+000034 30E0FB           305                     JNB     ACC.0, WAIT_LOCK
+                        306                          ; reconnect to PLL
+000037 53B7F7           307                     ANL     PLL_CON, #0xF7   ; VCOBYP = 0
+00003A 75BF00           308                     MOV     SCU_PAGE,#0
+                        309             ENDIF
+                        310     
+                        311     ENDIF
+                        312     
+                        313     IF IDATALEN <> 0
+00003D 787F             314                     MOV     R0,#IDATALEN - 1
+00003F E4               315                     CLR     A
+000040 F6               316     IDATALOOP:      MOV     @R0,A
+000041 D8FD             317                     DJNZ    R0,IDATALOOP
+AX51 MACRO ASSEMBLER  START_XC                                                              03/17/10 10:20:43 PAGE     6
+
+                        318     ENDIF
+                        319     
+                        320     IF (XC878_CHIP_16FF <> 0)
+                                                MOV     MEX3, #0x1F
+                                ENDIF
+                        323     
+                        324     IF XDATALEN <> 0
+000043 90F000           325                     MOV    DPTR, #XDATASTART
+000046 7F00             326                     MOV    R7,#LOW (XDATALEN)
+                        327             IF (LOW (XDATALEN)) <> 0
+                                                MOV     R6,#(HIGH (XDATALEN)) +1
+                                        ELSE
+000048 7E06             330                     MOV     R6,#HIGH (XDATALEN)
+                        331             ENDIF
+00004A E4               332                     CLR     A
+00004B F0               333     XDATALOOP:      MOVX    @DPTR,A
+00004C A3               334                     INC     DPTR
+00004D DFFC             335                     DJNZ    R7,XDATALOOP
+00004F DEFA             336                     DJNZ    R6,XDATALOOP
+                        337       
+                        338     ENDIF
+                        339     
+                        340     IF PPAGEENABLE <> 0
+                                                MOV     SCU_PAGE,#3 
+                                                MOV     XADDRH,#PPAGE    ;Page register change in DAvE!!          
+                                                MOV     SCU_PAGE,#0 
+                                ENDIF
+                        345     
+                        346     IF PDATALEN <> 0
+                                                MOV     R0,#LOW (PDATASTART)
+                                                MOV     R7,#LOW (PDATALEN)
+                                                CLR     A
+                                PDATALOOP:      MOVX    @R0,A
+                                                INC     R0
+                                                DJNZ    R7,PDATALOOP
+                                ENDIF
+                        354     
+                        355     IF IBPSTACK <> 0
+                                EXTRN DATA (?C_IBP)
+                                
+                                                MOV     ?C_IBP,#LOW IBPSTACKTOP
+                                ENDIF
+                        360     
+                        361     IF XBPSTACK <> 0
+                                EXTRN DATA (?C_XBP)
+                                
+                                                MOV     ?C_XBP,#HIGH XBPSTACKTOP
+                                                MOV     ?C_XBP+1,#LOW XBPSTACKTOP
+                                ENDIF
+                        367     
+                        368     IF PBPSTACK <> 0
+                                EXTRN DATA (?C_PBP)
+                                                MOV     ?C_PBP,#LOW PBPSTACKTOP
+                                ENDIF
+                        372     
+000051 758100     F     373                     MOV     SP,#?STACK-1
+                        374     
+000054 020000     E     375                     LJMP    ?C_START
+                        376     
+                        377     ; Overwrite ?C?DPSEL address for XC866 Device
+                        378     PUBLIC ?C?DPSEL
+ 00A2                   379     ?C?DPSEL DATA 0A2H   ; DPSEL address for Mentor M8051EW
+                        380     
+                        381     END
+                        382     
+AX51 MACRO ASSEMBLER  START_XC                                                              03/17/10 10:20:43 PAGE     7
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E                         T Y P E  V A L U E     ATTRIBUTES
+
+?C?DPSEL . . . . . . . . . . .  D  ADDR  00A2H     A   
+?C_C51STARTUP. . . . . . . . .  C  SEG   000057H       REL=UNIT, ALN=BYTE
+?C_START . . . . . . . . . . .  C  ADDR  -------       EXT
+?C_STARTUP . . . . . . . . . .  C  ADDR  0000H     R   SEG=?CO?START_XC?3
+?STACK . . . . . . . . . . . .  I  SEG   000001H       REL=UNIT, ALN=BYTE
+ACC. . . . . . . . . . . . . .  D  ADDR  00E0H     A   
+B. . . . . . . . . . . . . . .  D  ADDR  00F0H     A   
+CMCON. . . . . . . . . . . . .  D  ADDR  00BAH     A   
+DELAYXTAL. . . . . . . . . . .  C  ADDR  0011H     R   SEG=?C_C51STARTUP
+DPH. . . . . . . . . . . . . .  D  ADDR  0083H     A   
+DPL. . . . . . . . . . . . . .  D  ADDR  0082H     A   
+IBPSTACK . . . . . . . . . . .  N  NUMB  0000H     A   
+IBPSTACKTOP. . . . . . . . . .  N  NUMB  0100H     A   
+IDATALEN . . . . . . . . . . .  N  NUMB  0080H     A   
+IDATALOOP. . . . . . . . . . .  C  ADDR  0040H     R   SEG=?C_C51STARTUP
+MEX3 . . . . . . . . . . . . .  D  ADDR  0096H     A   
+NDIV . . . . . . . . . . . . .  N  NUMB  000AH     A   
+NDIV_XC866 . . . . . . . . . .  N  NUMB  0002H     A   
+NDIV_XC878_PLL_CON . . . . . .  N  NUMB  0018H     A   
+NDIV_XC878_PLL_CON1. . . . . .  N  NUMB  0000H     A   
+NDIV_XC88X . . . . . . . . . .  N  NUMB  000AH     A   
+NR_XC878 . . . . . . . . . . .  N  NUMB  0000H     A   
+OD_XC878 . . . . . . . . . . .  N  NUMB  0000H     A   
+OSC_CON. . . . . . . . . . . .  D  ADDR  00B6H     A   
+OSCR_NOTSET. . . . . . . . . .  C  ADDR  0015H     R   SEG=?C_C51STARTUP
+PASSWD . . . . . . . . . . . .  D  ADDR  00BBH     A   
+PBPSTACK . . . . . . . . . . .  N  NUMB  0000H     A   
+PBPSTACKTOP. . . . . . . . . .  N  NUMB  0100H     A   
+PDATALEN . . . . . . . . . . .  N  NUMB  0000H     A   
+PDATASTART . . . . . . . . . .  N  NUMB  F000H     A   
+PLL_CON. . . . . . . . . . . .  D  ADDR  00B7H     A   
+PLL_CON1 . . . . . . . . . . .  D  ADDR  00EAH     A   
+PPAGE. . . . . . . . . . . . .  N  NUMB  00F0H     A   
+PPAGEENABLE. . . . . . . . . .  N  NUMB  0000H     A   
+SCU_PAGE . . . . . . . . . . .  D  ADDR  00BFH     A   
+SP . . . . . . . . . . . . . .  D  ADDR  0081H     A   
+STARTUP1 . . . . . . . . . . .  C  ADDR  0000H     R   SEG=?C_C51STARTUP
+WAIT_LOCK. . . . . . . . . . .  C  ADDR  0032H     R   SEG=?C_C51STARTUP
+WAIT_ORDRES_0. . . . . . . . .  C  ADDR  0018H     R   SEG=?C_C51STARTUP
+XADDRH . . . . . . . . . . . .  D  ADDR  00B3H     A   
+XBPSTACK . . . . . . . . . . .  N  NUMB  0000H     A   
+XBPSTACKTOP. . . . . . . . . .  N  NUMB  00010000H A   
+XC866_CHIP . . . . . . . . . .  N  NUMB  0000H     A   
+XC878_CHIP_13FF. . . . . . . .  N  NUMB  0000H     A   
+XC878_CHIP_16FF. . . . . . . .  N  NUMB  0000H     A   
+XC88X_CHIP . . . . . . . . . .  N  NUMB  0001H     A   
+XDATALEN . . . . . . . . . . .  N  NUMB  0600H     A   
+XDATALOOP. . . . . . . . . . .  C  ADDR  004BH     R   SEG=?C_C51STARTUP
+XDATASTART . . . . . . . . . .  N  NUMB  F000H     A   
+XTAL . . . . . . . . . . . . .  N  NUMB  0001H     A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S).

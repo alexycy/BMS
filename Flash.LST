@@ -1,0 +1,277 @@
+C51 COMPILER V8.04b   FLASH                                                                03/17/2010 10:20:45 PAGE 1   
+
+
+C51 COMPILER V8.04b, COMPILATION OF MODULE FLASH
+OBJECT MODULE PLACED IN Flash.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE Flash.c LARGE OBJECTADVANCED OPTIMIZE(9,SPEED) BROWSE ORDER DEFINE(SLAVE_BO
+                    -ARDS,PRINT_ERROR,PRINT_WARNING,PRINT,PANASONIC_12_CELLS) DEBUG
+
+line level    source
+
+   1          #include <stdio.h>
+   2          #include <stdlib.h>
+   3          #include <math.h>
+   4          #include "MemoryXC8.h"
+   5          #include "Routines.h"
+   6          
+   7          
+   8          //********************************************************
+   9          //                               FLASH ROUTINE
+  10          //********************************************************                
+  11          void FlashCalculateAdr( SlaveData *pSlaveData )
+  12          {
+  13   1         unsigned int idata SectorAdr;
+  14   1         char idata WL, WL_Start;
+  15   1         
+  16   1         // define WL
+  17   1         if(*(unsigned long code *)FlashB400 != 0 && *(unsigned long code *)FlashB7E0 == 0) 
+  18   1              // second sector
+  19   1              WL_Start=32;  
+  20   1         else // first sector
+  21   1              WL_Start= 0;  
+  22   1         
+  23   1         // Wl = Wordline = 32 Byte
+  24   1         for(WL=WL_Start; WL<((FlashB800-FlashB000)/sizeof(WLBuf))+1; WL++)
+  25   1         {                   
+  26   2           // calculate start address from 0xB000...0xB3E0 or 0xB400....0xB800
+  27   2           SectorAdr = FlashB000 + (sizeof(WLBuf) * WL);
+  28   2           // search the empty line     
+  29   2           if( *(unsigned long code *)SectorAdr == 0 ) 
+  30   2             break; 
+  31   2         }
+  32   1        
+  33   1         // check address
+  34   1         if(SectorAdr == FlashB000 || SectorAdr == FlashB800)
+  35   1         {  
+  36   2           // next free adress
+  37   2           pSlaveData->FlashData.NextSectorAdr    = FlashB000;
+  38   2           // current adress
+  39   2           pSlaveData->FlashData.CurrentSectorAdr = FlashB7E0;     
+  40   2         }     
+  41   1         else
+  42   1         {          
+  43   2           // next free adress
+  44   2           pSlaveData->FlashData.NextSectorAdr    = SectorAdr;
+  45   2           // current address
+  46   2           pSlaveData->FlashData.CurrentSectorAdr = SectorAdr - sizeof(WLBuf);
+  47   2         }
+  48   1         
+  49   1         printf("read from FlashAdr:0x%x\n", (unsigned int)pSlaveData->FlashData.CurrentSectorAdr);          
+  50   1         printf("-> next empty FlashAdr:0x%x\n", (unsigned int)pSlaveData->FlashData.NextSectorAdr);          
+  51   1      }
+  52          
+  53          
+  54          //********************************************************
+C51 COMPILER V8.04b   FLASH                                                                03/17/2010 10:20:45 PAGE 2   
+
+  55          //                               FLASH ROUTINE
+  56          //********************************************************                
+  57          void FlashErrors( SlaveData *pSlaveData )
+  58          {
+  59   1         char idata SectorNo;
+  60   1         unsigned char xdata *pAdr = NULL;
+  61   1         static unsigned char FlashValue = 0;
+  62   1      
+  63   1         // only 3 times flash possible
+  64   1         if( FlashValue <= 2  )
+  65   1         {
+  66   2           // calculate sector 0 or 1
+  67   2           if(pSlaveData->FlashData.NextSectorAdr < FlashB800)  SectorNo = 1;
+  68   2           if(pSlaveData->FlashData.NextSectorAdr < FlashB400)  SectorNo = 0;
+  69   2      
+  70   2           // which Sector No?
+  71   2           switch( SectorNo )
+  72   2           {
+  73   3             case 0: //******************************************************
+  74   3                                 //            address where to save value 0xB000
+  75   3                                 //******************************************************     
+  76   3                               
+  77   3                             // fill internal RAM buffer
+  78   3                             LoadXD2WLBuf( (unsigned char xdata *)&pSlaveData->FlashData );
+  79   3                             // program flash
+  80   3                             ProgWL( (unsigned char code *)pSlaveData->FlashData.NextSectorAdr );
+  81   3                             // wait until ready
+  82   3                             while(FlReady(4) == 0);
+  83   3                             
+  84   3                             // new current sector address
+  85   3                             pSlaveData->FlashData.CurrentSectorAdr = pSlaveData->FlashData.NextSectorAdr;
+  86   3                             // new next sector address
+  87   3                             pSlaveData->FlashData.NextSectorAdr    = pSlaveData->FlashData.CurrentSectorAdr+sizeof(WLBuf);
+  88   3      
+  89   3                             // erase flash bank 1
+  90   3                             if(pSlaveData->FlashData.CurrentSectorAdr == FlashB000_20) 
+  91   3                             {
+  92   4                           // erase D-flash1 sector 1
+  93   4                       DFlErase(0, DFL1_SEC1);
+  94   4                               // wait until ready
+  95   4                               while(FlReady(4) == 0);
+  96   4                             }
+  97   3      
+  98   3                             break;
+  99   3      
+ 100   3             case 1: //******************************************************
+ 101   3                             //            address where to save value 0xB400
+ 102   3                             //****************************************************** 
+ 103   3                             
+ 104   3                             // fill internal RAM buffer
+ 105   3                             LoadXD2WLBuf( (unsigned char xdata *)&pSlaveData->FlashData );
+ 106   3                             // program flash
+ 107   3                             ProgWL( (unsigned char code *)pSlaveData->FlashData.NextSectorAdr );
+ 108   3                             // wait until ready
+ 109   3                             while(FlReady(4) == 0);                                          
+ 110   3      
+ 111   3                             // new current sector address
+ 112   3                             pSlaveData->FlashData.CurrentSectorAdr = pSlaveData->FlashData.NextSectorAdr;                     
+ 113   3                             // new next sector address
+ 114   3                             pSlaveData->FlashData.NextSectorAdr    = pSlaveData->FlashData.CurrentSectorAdr+sizeof(WLBuf);
+ 115   3                             // update next sector address
+ 116   3                             if(pSlaveData->FlashData.CurrentSectorAdr >= FlashB7E0) 
+C51 COMPILER V8.04b   FLASH                                                                03/17/2010 10:20:45 PAGE 3   
+
+ 117   3                                pSlaveData->FlashData.NextSectorAdr     = FlashB000;
+ 118   3                               
+ 119   3                             // erase flash bank 0
+ 120   3                             if(pSlaveData->FlashData.CurrentSectorAdr == FlashB400_20) 
+ 121   3                             {
+ 122   4                       // erase D-flash1 sector 0
+ 123   4                       DFlErase(0, DFL1_SEC0);
+ 124   4                               // wait until ready
+ 125   4                               while(FlReady(4) == 0);
+ 126   4                             }
+ 127   3                               
+ 128   3                             break;
+ 129   3      
+ 130   3                 // clear flash
+ 131   3                 default: // erase D-flash1 sector 0
+ 132   3                      DFlErase(0, DFL1_SEC0);
+ 133   3                      // wait until ready
+ 134   3                      while(FlReady(4) == 0);
+ 135   3                          // erase D-flash1 sector 1
+ 136   3                      DFlErase(0, DFL1_SEC1);
+ 137   3                      // wait until ready
+ 138   3                      while(FlReady(4) == 0);                                                   
+ 139   3                          // read flash
+ 140   3                          FlashCalculateAdr(pSlaveData);
+ 141   3                                      printf("Error: wrong flash sector!!!\n\n");
+ 142   3                                  break;
+ 143   3           } 
+ 144   2      
+ 145   2           printf("written to FlashAdr:0x%x \n", (unsigned int)pSlaveData->FlashData.CurrentSectorAdr);        
+ 146   2           printf("-> next empty FlashAdr:0x%x\n", (unsigned int)pSlaveData->FlashData.NextSectorAdr);        
+ 147   2               // update
+ 148   2           FlashValue++;
+ 149   2         }
+ 150   1      }
+ 151          
+ 152          //********************************************************
+ 153          //                               READ FLASH DATA
+ 154          //********************************************************                
+ 155          void FlashReadErrors( SlaveData *pSlaveData )
+ 156          {
+ 157   1         volatile unsigned char a=0, b=0, c=0, d=0;
+ 158   1         
+ 159   1         a=((*(char code *)(pSlaveData->FlashData.CurrentSectorAdr+12))&0x02)>>1;
+ 160   1         b=((*(char code *)(pSlaveData->FlashData.CurrentSectorAdr+12))&0x08)>>3;
+ 161   1         c=((*(char code *)(pSlaveData->FlashData.CurrentSectorAdr+12))&0x10)>>4;
+ 162   1         d=((*(char code *)(pSlaveData->FlashData.CurrentSectorAdr+12))&0x20)>>5;
+ 163   1      
+ 164   1         printf("Read flashed Errors (0x%x):\n", ( unsigned int)pSlaveData->FlashData.CurrentSectorAdr);
+ 165   1         printf("- SlaveGetsNoPing: %bu\n", a );
+ 166   1         printf("- BlockUnderLevel: %bu\n", b );
+ 167   1         printf("- TempShortCut:    %bu\n", c );
+ 168   1         printf("- TempOpen:        %bu\n", d );
+ 169   1         printf("- TempOverlevel:  0x%bx\n",  *(unsigned char code *)(pSlaveData->FlashData.CurrentSectorAdr+11)
+             -);
+ 170   1         printf("- CellUnderlevel: 0x%bx\n",  *(unsigned char code *)(pSlaveData->FlashData.CurrentSectorAdr+10)
+             -);
+ 171   1         printf("- CellOverLevel:  0x%bx\n",  *(unsigned char code *)(pSlaveData->FlashData.CurrentSectorAdr+ 9)
+             -);
+ 172   1      }
+ 173          
+ 174          //********************************************************
+ 175          //                                  SAVE ERRORS
+C51 COMPILER V8.04b   FLASH                                                                03/17/2010 10:20:45 PAGE 4   
+
+ 176          //********************************************************                
+ 177          void FlashBufferErrors( SlaveData *pSlaveData)
+ 178          {  
+ 179   1         // save error/warning                
+ 180   1         if(pSlaveData->Error & CellOverLevel)  
+ 181   1            pSlaveData->FlashData.CellOverLevel  = (0xF0 + pSlaveData->BalanceCellIndex[0]);
+ 182   1         if(pSlaveData->Error & CellUnderLevel) 
+ 183   1            pSlaveData->FlashData.CellUnderLevel = (0xF0 + pSlaveData->BalanceCellIndex[pSlaveData->LowestCellIn
+             -dex]);
+ 184   1         if(pSlaveData->Error & TempOverLevel)            
+ 185   1            pSlaveData->FlashData.TempOverLevel  = (0xF0 + pSlaveData->TempIndex[0]);
+ 186   1         
+ 187   1         if(pSlaveData->Error & SlaveGetsNoPing)          
+ 188   1            pSlaveData->FlashData.FurtherErrorBits.SlaveGetsNoPing = 1;
+ 189   1         if(pSlaveData->Error & BlockUnderLevel)          
+ 190   1            pSlaveData->FlashData.FurtherErrorBits.BlockUnderLevel = 1;     
+ 191   1               
+ 192   1         // save warnings
+ 193   1         if(pSlaveData->Warning & TempShortCut)   
+ 194   1            pSlaveData->FlashData.FurtherErrorBits.TempShortCut = 1;
+ 195   1         if(pSlaveData->Warning & TempOpen)       
+ 196   1            pSlaveData->FlashData.FurtherErrorBits.TempOpen     = 1;
+ 197   1      }
+ 198          
+ 199          
+ 200          //********************************************************
+ 201          //                               FLASH ROUTINE
+ 202          //********************************************************                
+ 203          void FlashBoardCorrValues( unsigned int *buffer )
+ 204          {
+ 205   1         // erase D-flash 1 sector 9
+ 206   1         DFlErase(0, DFL1_SEC9);                       
+ 207   1         // wait until ready
+ 208   1         while(FlReady(4) == 0);
+ 209   1         
+ 210   1         // fill internal RAM buffer
+ 211   1         LoadXD2WLBuf( (unsigned char xdata*)buffer );
+ 212   1         // program flash
+ 213   1         ProgWL( (unsigned char code *)FlashAddress_BFEO );
+ 214   1         // wait until ready
+ 215   1         while(FlReady(4) == 0);
+ 216   1         // print
+ 217   1         printf("\nboard parameter flashed at address 0x%x \n\n",FlashAddress_BFEO);
+ 218   1      }
+ 219          
+ 220          //********************************************************
+ 221          //                               FLASH ROUTINE
+ 222          //********************************************************                
+ 223          void FlashReadBoardCorrValues( SlaveData *pSlaveData )
+ 224          {
+ 225   1        unsigned char i;
+ 226   1        
+ 227   1        // add Offset
+ 228   1        printf("\nRead Flash Cal. Fac.:\n");
+ 229   1        for(i=0; i<Cells; i++)
+ 230   1        {
+ 231   2          pSlaveData->Ufac_u[i] = *(unsigned int code *)(FlashAddress_BFEO+(sizeof(unsigned int)*i));     
+ 232   2          printf(" cal.fac. cell%bu: %.4f\n", i, (float)pSlaveData->Ufac_u[i]/(32*Ucell_Grade));
+ 233   2        } 
+ 234   1        // block voltage corr value
+ 235   1        pSlaveData->Ufac_u[Cells] = *(unsigned int code *)(FlashAddress_BFEO+(sizeof(unsigned int)*Cells));     
+ 236   1          printf(" cal.fac. block: %.4f\n", (float)pSlaveData->Ufac_u[Cells]/Ublock_Grade);           
+C51 COMPILER V8.04b   FLASH                                                                03/17/2010 10:20:45 PAGE 5   
+
+ 237   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1846    ----
+   CONSTANT SIZE    =    428    ----
+   XDATA SIZE       =      1      25
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----       5
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

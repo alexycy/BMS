@@ -1,0 +1,585 @@
+C51 COMPILER V8.04b   ADC                                                                  03/17/2010 10:20:44 PAGE 1   
+
+
+C51 COMPILER V8.04b, COMPILATION OF MODULE ADC
+OBJECT MODULE PLACED IN ADC.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE ADC.C LARGE OBJECTADVANCED OPTIMIZE(9,SPEED) BROWSE ORDER DEFINE(SLAVE_BOAR
+                    -DS,PRINT_ERROR,PRINT_WARNING,PRINT,PANASONIC_12_CELLS) DEBUG
+
+line level    source
+
+   1          //****************************************************************************
+   2          // @Module        Analog / Digital Converter (ADC)
+   3          // @Filename      ADC.C
+   4          // @Project       BM_NewSlave.dav
+   5          //----------------------------------------------------------------------------
+   6          // @Controller    Infineon XC886CLM-8FF
+   7          //
+   8          // @Compiler      Keil
+   9          //
+  10          // @Codegenerator 1.6
+  11          //
+  12          // @Description:  This file contains functions that use the ADC module.
+  13          //
+  14          //----------------------------------------------------------------------------
+  15          // @Date          12.08.2009 19:23:26
+  16          //
+  17          //****************************************************************************
+  18          
+  19          // USER CODE BEGIN (ADC_General,1)
+  20          
+  21          // USER CODE END
+  22          
+  23          
+  24          
+  25          //****************************************************************************
+  26          // @Project Includes
+  27          //****************************************************************************
+  28          
+  29          #include "MAIN.H"
+  30          
+  31          // USER CODE BEGIN (ADC_General,2)
+  32          #include "Routines.h"
+  33          #include <stdio.h>
+  34          // USER CODE END
+  35          
+  36          
+  37          //****************************************************************************
+  38          // @Macros
+  39          //****************************************************************************
+  40          
+  41          // USER CODE BEGIN (ADC_General,3)
+  42          
+  43          // USER CODE END
+  44          
+  45          
+  46          //****************************************************************************
+  47          // @Defines
+  48          //****************************************************************************
+  49          
+  50          // USER CODE BEGIN (ADC_General,4)
+  51          sfr16   RESULT_REGISTER_0   =  0xCA;
+  52          sfr16   RESULT_REGISTER_1       =  0xCC;
+  53          sfr16   RESULT_REGISTER_2       =  0xCE;
+  54          sfr16   RESULT_REGISTER_3       =  0xD2;
+C51 COMPILER V8.04b   ADC                                                                  03/17/2010 10:20:44 PAGE 2   
+
+  55          
+  56          // USER CODE END
+  57          
+  58          
+  59          //****************************************************************************
+  60          // @Typedefs
+  61          //****************************************************************************
+  62          
+  63          // USER CODE BEGIN (ADC_General,5)
+  64          
+  65          // USER CODE END
+  66          
+  67          
+  68          //****************************************************************************
+  69          // @Imported Global Variables
+  70          //****************************************************************************
+  71          
+  72          // USER CODE BEGIN (ADC_General,6)
+  73          //extern Board_Data xdata sBoardData;
+  74          //GKextern unsigned char Pin;
+  75          // USER CODE END
+  76          
+  77          
+  78          //****************************************************************************
+  79          // @Global Variables
+  80          //****************************************************************************
+  81          
+  82          // USER CODE BEGIN (ADC_General,7)
+  83          
+  84          // USER CODE END
+  85          
+  86          
+  87          //****************************************************************************
+  88          // @External Prototypes
+  89          //****************************************************************************
+  90          
+  91          // USER CODE BEGIN (ADC_General,8)
+  92          
+  93          // USER CODE END
+  94          
+  95          
+  96          //****************************************************************************
+  97          // @Prototypes Of Local Functions
+  98          //****************************************************************************
+  99          
+ 100          // USER CODE BEGIN (ADC_General,9)
+ 101          
+ 102          // USER CODE END
+ 103          
+ 104          
+ 105          //****************************************************************************
+ 106          // @Function      void ADC_vInit(void) 
+ 107          //
+ 108          //----------------------------------------------------------------------------
+ 109          // @Description   This is the initialization function of the ADC function 
+ 110          //                library. It is assumed that the SFRs used by this library 
+ 111          //                are in their reset state. 
+ 112          //                
+ 113          //                Following SFR fields will be initialized:
+ 114          //                GLOBCTR  - Global Control
+ 115          //                PRAR     - Priority and Arbitration Register
+ 116          //                ETRCR    - External Trigger Control Register
+C51 COMPILER V8.04b   ADC                                                                  03/17/2010 10:20:44 PAGE 3   
+
+ 117          //                CHCTRx   - Channel Control Register x
+ 118          //                RCRx     - Result Control Register x
+ 119          //
+ 120          //----------------------------------------------------------------------------
+ 121          // @Returnvalue   None
+ 122          //
+ 123          //----------------------------------------------------------------------------
+ 124          // @Parameters    None
+ 125          //
+ 126          //----------------------------------------------------------------------------
+ 127          // @Date          12.08.2009
+ 128          //
+ 129          //****************************************************************************
+ 130          
+ 131          // USER CODE BEGIN (ADC_Init,1)
+ 132          
+ 133          // USER CODE END
+ 134          
+ 135          void ADC_vInit(void)
+ 136          {
+ 137   1        // USER CODE BEGIN (ADC_Init,2)
+ 138   1      
+ 139   1        // USER CODE END
+ 140   1      
+ 141   1        ///  -----------------------------------------------------------------------
+ 142   1        ///  Configuration of Global Control:
+ 143   1        ///  -----------------------------------------------------------------------
+ 144   1        ///  - the ADC module clock is enabled
+ 145   1        ///  - the ADC module clock = 24,00 MHz
+ 146   1        ///   
+ 147   1        ///  - the result is 10 bits wide
+ 148   1        ///  --- Conversion Timing -----------------
+ 149   1        ///  - conversion time (CTC)    = 02,04 us
+ 150   1      
+ 151   1        ///  - Configure global control functions 
+ 152   1      
+ 153   1        SFR_PAGE(_ad0, noSST);         // switch to page 0
+ 154   1      
+ 155   1        ADC_GLOBCTR   =  0x10;         // load global control register
+ 156   1      
+ 157   1        ///  -----------------------------------------------------------------------
+ 158   1        ///  Configuration of Priority and Arbitration:
+ 159   1        ///  -----------------------------------------------------------------------
+ 160   1        ///  - the priority of request source 0 is high
+ 161   1        ///  - the wait-for-start mode is selected for source 0
+ 162   1        ///  - the priority of request source 1 is low
+ 163   1        ///  - the wait-for-start mode is selected for source 1
+ 164   1        ///  - the arbitration started by pending conversion request is selected
+ 165   1        ///  - Arbitration Slot 0 is enabled
+ 166   1        ///  - Arbitration Slot 1 is disabled
+ 167   1      
+ 168   1        ADC_PRAR      =  0x51;         // load Priority and Arbitration register
+ 169   1      
+ 170   1        SFR_PAGE(_ad1, noSST);         // switch to page 1
+ 171   1      
+ 172   1        ///  -----------------------------------------------------------------------
+ 173   1        ///  Configuration of Channel Control Registers:
+ 174   1        ///  -----------------------------------------------------------------------
+ 175   1        ///  Configuration of Channel 0
+ 176   1        ///  - the result register0 is selected
+ 177   1        ///  - the limit check 0 is selected
+ 178   1      
+C51 COMPILER V8.04b   ADC                                                                  03/17/2010 10:20:44 PAGE 4   
+
+ 179   1        ADC_CHCTR0    =  0x00;         // load channel control register
+ 180   1      
+ 181   1        ///  Configuration of Channel 1
+ 182   1        ///  - the result register1 is selected
+ 183   1        ///  - the limit check 0 is selected
+ 184   1      
+ 185   1        ADC_CHCTR1    =  0x01;         // load channel control register
+ 186   1      
+ 187   1        ///  Configuration of Channel 2
+ 188   1        ///  - the result register2 is selected
+ 189   1        ///  - the limit check 0 is selected
+ 190   1      
+ 191   1        ADC_CHCTR2    =  0x02;         // load channel control register
+ 192   1      
+ 193   1        ///  Configuration of Channel 3
+ 194   1        ///  - the result register3 is selected
+ 195   1        ///  - the limit check 0 is selected
+ 196   1      
+ 197   1        ADC_CHCTR3    =  0x03;         // load channel control register
+ 198   1      
+ 199   1        ///  Configuration of Channel 4
+ 200   1        ///  - the result register0 is selected
+ 201   1        ///  - the limit check 0 is selected
+ 202   1      
+ 203   1        ADC_CHCTR4    =  0x00;         // load channel control register
+ 204   1      
+ 205   1        ///  Configuration of Channel 5
+ 206   1        ///  - the result register1 is selected
+ 207   1        ///  - the limit check 0 is selected
+ 208   1      
+ 209   1        ADC_CHCTR5    =  0x01;         // load channel control register
+ 210   1      
+ 211   1        ///  Configuration of Channel 6
+ 212   1        ///  - the result register2 is selected
+ 213   1        ///  - the limit check 0 is selected
+ 214   1      
+ 215   1        ADC_CHCTR6    =  0x02;         // load channel control register
+ 216   1      
+ 217   1        ///  Configuration of Channel 7
+ 218   1        ///  - the result register3 is selected
+ 219   1        ///  - the limit check 0 is selected
+ 220   1      
+ 221   1        ADC_CHCTR7    =  0x03;         // load channel control register
+ 222   1      
+ 223   1        SFR_PAGE(_ad0, noSST);         // switch to page 0
+ 224   1      
+ 225   1        ///  -----------------------------------------------------------------------
+ 226   1        ///  Configuration of Sample Time Control:
+ 227   1        ///  -----------------------------------------------------------------------
+ 228   1      
+ 229   1        ADC_INPCR0    =  0x03;         // load input class register
+ 230   1      
+ 231   1        SFR_PAGE(_ad4, noSST);         // switch to page 4
+ 232   1      
+ 233   1        ///  -----------------------------------------------------------------------
+ 234   1        ///  Configuration of Result Control Registers:
+ 235   1        ///  -----------------------------------------------------------------------
+ 236   1        ///  Configuration of Result Control Register 0
+ 237   1        ///  - the data reduction filter is disabled
+ 238   1        ///  - the event interrupt is disabled
+ 239   1        ///  - the wait-for-read mode is enabled
+ 240   1        ///  - the VF reset by read access to RESRxH/RESRAxH
+C51 COMPILER V8.04b   ADC                                                                  03/17/2010 10:20:44 PAGE 5   
+
+ 241   1      
+ 242   1        ADC_RCR0      =  0xC0;         // load result control register 0
+ 243   1      
+ 244   1        ///  Configuration of Result Control Register 1
+ 245   1        ///  - the data reduction filter is disabled
+ 246   1        ///  - the event interrupt is disabled
+ 247   1        ///  - the wait-for-read mode is enabled
+ 248   1        ///  - the VF reset by read access to RESRxH/RESRAxH
+ 249   1      
+ 250   1        ADC_RCR1      =  0xC0;         // load result control register 1
+ 251   1      
+ 252   1        ///  Configuration of Result Control Register 2
+ 253   1        ///  - the data reduction filter is disabled
+ 254   1        ///  - the event interrupt is disabled
+ 255   1        ///  - the wait-for-read mode is enabled
+ 256   1        ///  - the VF reset by read access to RESRxH/RESRAxH
+ 257   1      
+ 258   1        ADC_RCR2      =  0xC0;         // load result control register 2
+ 259   1      
+ 260   1        ///  Configuration of Result Control Register 3
+ 261   1        ///  - the data reduction filter is disabled
+ 262   1        ///  - the event interrupt is disabled
+ 263   1        ///  - the wait-for-read mode is enabled
+ 264   1        ///  - the VF reset by read access to RESRxH/RESRAxH
+ 265   1      
+ 266   1        ADC_RCR3      =  0xC0;         // load result control register 3
+ 267   1      
+ 268   1        SFR_PAGE(_ad5, noSST);         // switch to page 5
+ 269   1      
+ 270   1        ///  -----------------------------------------------------------------------
+ 271   1        ///  Configuration of Channel Interrupt Node Pointer Register:
+ 272   1        ///  -----------------------------------------------------------------------
+ 273   1        ///  - the SR 0 line become activated if channel 0 interrupt is generated
+ 274   1        ///  - the SR 0 line become activated if channel 1 interrupt is generated
+ 275   1        ///  - the SR 0 line become activated if channel 2 interrupt is generated
+ 276   1        ///  - the SR 0 line become activated if channel 3 interrupt is generated
+ 277   1        ///  - the SR 0 line become activated if channel 4 interrupt is generated
+ 278   1        ///  - the SR 0 line become activated if channel 5 interrupt is generated
+ 279   1        ///  - the SR 0 line become activated if channel 6 interrupt is generated
+ 280   1        ///  - the SR 0 line become activated if channel 7 interrupt is generated
+ 281   1      
+ 282   1        ADC_CHINPR    =  0x00;         // load channel interrupt node pointer 
+ 283   1                                       // register 
+ 284   1      
+ 285   1        ///  -----------------------------------------------------------------------
+ 286   1        ///  Configuration of Event Interrupt Node Pointer Registers:
+ 287   1        ///  -----------------------------------------------------------------------
+ 288   1        ///  - the SR 0 line become activated if the event 0 interrupt is generated
+ 289   1        ///  - the SR 0 line become activated if the event 1 interrupt is generated
+ 290   1        ///  - the SR 0 line become activated if the event 4 interrupt is generated
+ 291   1        ///  - the SR 0 line become activated if the event 5 interrupt is generated
+ 292   1        ///  - the SR 0 line become activated if the event 6 interrupt is generated
+ 293   1        ///  - the SR 0 line become activated if the event 7 interrupt is generated
+ 294   1      
+ 295   1        ADC_EVINPR    =  0x00;         // load event interrupt set flag register 
+ 296   1      
+ 297   1        SFR_PAGE(_ad0, noSST);         // switch to page 0
+ 298   1      
+ 299   1        ///  -----------------------------------------------------------------------
+ 300   1        ///  Configuration of Limit Check Boundary:
+ 301   1        ///  -----------------------------------------------------------------------
+ 302   1      
+C51 COMPILER V8.04b   ADC                                                                  03/17/2010 10:20:44 PAGE 6   
+
+ 303   1        ADC_LCBR      =  0xB7;         // load limit check boundary register
+ 304   1      
+ 305   1        ///  -----------------------------------------------------------------------
+ 306   1        ///  Configuration of External Trigger Control:
+ 307   1        ///  -----------------------------------------------------------------------
+ 308   1        ///  - the trigger input ETR02 is selected for Source 0
+ 309   1        ///  - the trigger input ETR10 is selected for Source 1
+ 310   1        ///  - the synchronizing stage is not in external trigger input REQTR0 path
+ 311   1        ///  - the synchronizing stage is not in external trigger input REQTR1 path
+ 312   1      
+ 313   1        ADC_ETRCR     =  0x02;         // load external trigger control register
+ 314   1      
+ 315   1        SFR_PAGE(_ad6, noSST);         // switch to page 6
+ 316   1      
+ 317   1        ///  -----------------------------------------------------------------------
+ 318   1        ///  Configuration of Conversion Queue Mode Register:
+ 319   1        ///  -----------------------------------------------------------------------
+ 320   1        ///  - the gating line is permanently 1
+ 321   1        ///  - the external trigger is enabled
+ 322   1      
+ 323   1        ADC_QMR0      =  0x05;         // load queue mode register
+ 324   1      
+ 325   1        ///  -----------------------------------------------------------------------
+ 326   1        ///  Configuration of Conversion Request Mode Registers:
+ 327   1        ///  -----------------------------------------------------------------------
+ 328   1        ///  - the gating line is permanently 0
+ 329   1        ///  - the external trigger is disabled
+ 330   1        ///  - the source interrupt is disabled
+ 331   1        ///  - the autoscan functionality is disabled
+ 332   1      
+ 333   1        ADC_CRMR1     =  0x00;         // load conversion request mode register 1
+ 334   1      
+ 335   1        SFR_PAGE(_ad0, noSST);         // switch to page 0
+ 336   1      
+ 337   1        ADC_GLOBCTR  |=  0x80;         // turn on Analog part
+ 338   1      
+ 339   1        ///  - ADC-Interrupt (EADC) remains disabled
+ 340   1      
+ 341   1      
+ 342   1        // USER CODE BEGIN (ADC_Init,3)
+ 343   1      
+ 344   1        // USER CODE END
+ 345   1      
+ 346   1      } //  End of function ADC_vInit
+ 347          
+ 348          
+ 349          //****************************************************************************
+ 350          // @Function      void ADC_vStartSeqReqChNum(ubyte ubExtTrg, ubyte ubEnIntr, 
+ 351          //                ubyte ubRFill, ubyte ubChannelNum) 
+ 352          //
+ 353          //----------------------------------------------------------------------------
+ 354          // @Description   This function request software controlled conversion for 
+ 355          //                new channel.
+ 356          //                
+ 357          //
+ 358          //----------------------------------------------------------------------------
+ 359          // @Returnvalue   None
+ 360          //
+ 361          //----------------------------------------------------------------------------
+ 362          // @Parameters    ubExtTrg: 
+ 363          //                External Trigger : defines external trigger
+ 364          // @Parameters    ubEnIntr: 
+C51 COMPILER V8.04b   ADC                                                                  03/17/2010 10:20:44 PAGE 7   
+
+ 365          //                Enable Source Interrupt : defines source interrupt
+ 366          // @Parameters    ubRFill: 
+ 367          //                Refill : defines the refill
+ 368          // @Parameters    ubChannelNum: 
+ 369          //                Name of the Request Channel Number (0 - 7)
+ 370          //
+ 371          //----------------------------------------------------------------------------
+ 372          // @Date          12.08.2009
+ 373          //
+ 374          //****************************************************************************
+ 375          
+ 376          void ADC_vStartSeqReqChNum(ubyte ubExtTrg, ubyte ubEnIntr, ubyte ubRFill, ubyte ubChannelNum)
+ 377          {
+ 378   1      
+ 379   1        ubyte ubVal = 0;
+ 380   1        if (ubExtTrg == 1){ ubVal = 0x80;}
+ 381   1        if (ubEnIntr == 1){ ubVal = ubVal + 0x40;}
+ 382   1        if (ubRFill == 1){ ubVal = ubVal + 0x20;}
+ 383   1        ubVal = ubVal + (ubChannelNum & 0x07);
+ 384   1      
+ 385   1        SFR_PAGE(_ad6, SST1);          // switch to page 6
+ 386   1      
+ 387   1        ADC_QINR0 = ubVal; // requested channel 
+ 388   1      
+ 389   1        SFR_PAGE(_ad0, RST1);          // restore the old ADC page
+ 390   1      
+ 391   1      } //  End of function ADC_vStartSeqReqChNum
+ 392          
+ 393          
+ 394          //****************************************************************************
+ 395          // @Function      ubyte ADC_ubGetEventInterruptFlag(void) 
+ 396          //
+ 397          //----------------------------------------------------------------------------
+ 398          // @Description   This function reads the activated event interupt flags 
+ 399          //                EVINFR
+ 400          //
+ 401          //----------------------------------------------------------------------------
+ 402          // @Returnvalue   Bit x = 1 if event interrupt for event x has occured, else 0
+ 403          //
+ 404          //----------------------------------------------------------------------------
+ 405          // @Parameters    None
+ 406          //
+ 407          //----------------------------------------------------------------------------
+ 408          // @Date          12.08.2009
+ 409          //
+ 410          //****************************************************************************
+ 411          
+ 412          ubyte ADC_ubGetEventInterruptFlag(void)
+ 413          {
+ 414   1        ubyte ubResult = 0;
+ 415   1      
+ 416   1        SFR_PAGE(_ad5, SST1);          // switch to page 5
+ 417   1      
+ 418   1        ubResult = ADC_EVINFR ;
+ 419   1      
+ 420   1        SFR_PAGE(_ad0, RST1);          // restore the old ADC page
+ 421   1      
+ 422   1        return(ubResult);
+ 423   1      } //  End of function ADC_ubGetEventInterruptFlag
+ 424          
+ 425          
+ 426          //****************************************************************************
+C51 COMPILER V8.04b   ADC                                                                  03/17/2010 10:20:44 PAGE 8   
+
+ 427          // @Function      void ADC_vClearEventInterruptFlag(ubyte ubChannelNum) 
+ 428          //
+ 429          //----------------------------------------------------------------------------
+ 430          // @Description   This function clears the corresponding event interrupt flag 
+ 431          //                in register EVINFR.
+ 432          //                Example: 
+ 433          //                ADC_vClearEventInterruptFlag( 0x03 )
+ 434          //                clears EVINCR.EVINC0 (bit 0) and EVINCR.EVINC1 (bit 1)
+ 435          //
+ 436          //----------------------------------------------------------------------------
+ 437          // @Returnvalue   None
+ 438          //
+ 439          //----------------------------------------------------------------------------
+ 440          // @Parameters    ubChannelNum: 
+ 441          //                Name of the event interrupt to be cleared
+ 442          //
+ 443          //----------------------------------------------------------------------------
+ 444          // @Date          12.08.2009
+ 445          //
+ 446          //****************************************************************************
+ 447          
+ 448          void ADC_vClearEventInterruptFlag(ubyte ubChannelNum)
+ 449          {
+ 450   1      
+ 451   1        SFR_PAGE(_ad5, SST1);          // switch to page 5
+ 452   1      
+ 453   1        ADC_EVINCR = ubChannelNum;
+ 454   1      
+ 455   1        SFR_PAGE(_ad0, RST1);          // restore the old ADC page
+ 456   1      
+ 457   1      } //  End of function ADC_vClearEventInterruptFlag
+ 458          
+ 459          
+ 460          
+ 461          
+ 462          
+ 463          
+ 464          // USER CODE BEGIN (ADC_General,10)
+ 465          uword ADC_uwGetResultData0(void)
+ 466          {
+ 467   1        uword uwResult = 0;
+ 468   1      
+ 469   1        SFR_PAGE(_ad2, SST1);          // switch to page 2
+ 470   1      
+ 471   1          if ( ADC_RESR0L & 0x10 )       //  if Result Register0 contains valid data
+ 472   1          {    
+ 473   2          //uwResult = (uword)((ADC_RESR0H << 2) + ((ADC_RESR0L >> 6)& 0x03));   // for 10-bit resolution (witho
+             -ut accumulation)
+ 474   2          uwResult = (RESULT_REGISTER_0 >> 6) & 0x3FF;
+ 475   2          }
+ 476   1      
+ 477   1        SFR_PAGE(_ad0, RST1);          // restore the old ADC page
+ 478   1      
+ 479   1        return(uwResult);
+ 480   1      } //  End of function ADC_uwGetResultData0
+ 481          
+ 482          uword ADC_uwGetResultData1(void)
+ 483          {
+ 484   1        uword uwResult = 0;
+ 485   1      
+ 486   1        SFR_PAGE(_ad2, SST1);          // switch to page 2
+ 487   1      
+C51 COMPILER V8.04b   ADC                                                                  03/17/2010 10:20:44 PAGE 9   
+
+ 488   1          if ( ADC_RESR1L & 0x10 )       //  if Result Register1 contains valid data
+ 489   1          {
+ 490   2          //uwResult = (uword)((ADC_RESR1H << 2) + ((ADC_RESR1L >> 6)& 0x03));   // for 10-bit resolution (witho
+             -ut accumulation)
+ 491   2          uwResult = (RESULT_REGISTER_1 >> 6);
+ 492   2          }
+ 493   1      
+ 494   1        SFR_PAGE(_ad0, RST1);          // restore the old ADC page
+ 495   1      
+ 496   1        return(uwResult);
+ 497   1      } //  End of function ADC_uwGetResultData1x
+ 498          
+ 499          
+ 500          uword ADC_uwGetResultData2(void)
+ 501          {
+ 502   1        uword uwResult = 0;
+ 503   1      
+ 504   1        SFR_PAGE(_ad2, SST1);          // switch to page 2
+ 505   1      
+ 506   1          if ( ADC_RESR2L & 0x10 )       //  if Result Register2 contains valid data
+ 507   1          {
+ 508   2          //uwResult = (uword)((ADC_RESR2H << 2) + ((ADC_RESR2L >> 6)& 0x03));   // for 10-bit resolution (witho
+             -ut accumulation)
+ 509   2          uwResult = (RESULT_REGISTER_2 >> 6);
+ 510   2          }
+ 511   1      
+ 512   1        SFR_PAGE(_ad0, RST1);          // restore the old ADC page
+ 513   1      
+ 514   1        return(uwResult);
+ 515   1      } //  End of function ADC_uwGetResultData2x
+ 516          
+ 517          uword ADC_uwGetResultData3(void)
+ 518          {
+ 519   1        uword uwResult = 0;
+ 520   1      
+ 521   1        SFR_PAGE(_ad2, SST1);          // switch to page 2
+ 522   1      
+ 523   1          if ( ADC_RESR3L & 0x10 )       //  if Result Register3 contains valid data
+ 524   1          {
+ 525   2          //uwResult = (uword)((ADC_RESR3H << 2) + ((ADC_RESR3L >> 6)& 0x03));   // for 10-bit resolution (witho
+             -ut accumulation)
+ 526   2          uwResult = (RESULT_REGISTER_3 >> 6);
+ 527   2          }
+ 528   1      
+ 529   1        SFR_PAGE(_ad0, RST1);          // restore the old ADC page
+ 530   1      
+ 531   1        return(uwResult);
+ 532   1      } //  End of function ADC_uwGetResultData3x
+ 533          
+ 534          // USER CODE END
+ 535          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    288    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----       4
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+C51 COMPILER V8.04b   ADC                                                                  03/17/2010 10:20:44 PAGE 10  
+
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

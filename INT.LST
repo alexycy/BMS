@@ -1,0 +1,291 @@
+C51 COMPILER V8.04b   INT                                                                  03/17/2010 10:20:45 PAGE 1   
+
+
+C51 COMPILER V8.04b, COMPILATION OF MODULE INT
+OBJECT MODULE PLACED IN INT.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE INT.C LARGE OBJECTADVANCED OPTIMIZE(9,SPEED) BROWSE ORDER DEFINE(SLAVE_BOAR
+                    -DS,PRINT_ERROR,PRINT_WARNING,PRINT,PANASONIC_12_CELLS) DEBUG
+
+line level    source
+
+   1          //****************************************************************************
+   2          // @Module        Interrupt Unit
+   3          // @Filename      INT.C
+   4          // @Project       BM_NewSlave.dav
+   5          //----------------------------------------------------------------------------
+   6          // @Controller    Infineon XC886CLM-8FF
+   7          //
+   8          // @Compiler      Keil
+   9          //
+  10          // @Codegenerator 1.6
+  11          //
+  12          // @Description:  This file contains functions that use the IR module.
+  13          //
+  14          //----------------------------------------------------------------------------
+  15          // @Date          12.08.2009 19:23:24
+  16          //
+  17          //****************************************************************************
+  18          
+  19          // USER CODE BEGIN (IR_General,1)
+  20          
+  21          // USER CODE END
+  22          
+  23          
+  24          
+  25          //****************************************************************************
+  26          // @Project Includes
+  27          //****************************************************************************
+  28          
+  29          #include "MAIN.H"
+  30          
+  31          // USER CODE BEGIN (IR_General,2)
+  32          #include <stdio.h>
+  33          #include "Routines.h"
+  34          #include "Flash.h"
+  35          // USER CODE END
+  36          
+  37          
+  38          //****************************************************************************
+  39          // @Macros
+  40          //****************************************************************************
+  41          
+  42          // USER CODE BEGIN (IR_General,3)
+  43          
+  44          // USER CODE END
+  45          
+  46          
+  47          //****************************************************************************
+  48          // @Defines
+  49          //****************************************************************************
+  50          
+  51          // USER CODE BEGIN (IR_General,4)
+  52          
+  53          // USER CODE END
+  54          
+C51 COMPILER V8.04b   INT                                                                  03/17/2010 10:20:45 PAGE 2   
+
+  55          
+  56          //****************************************************************************
+  57          // @Typedefs
+  58          //****************************************************************************
+  59          
+  60          // USER CODE BEGIN (IR_General,5)
+  61          
+  62          // USER CODE END
+  63          
+  64          
+  65          //****************************************************************************
+  66          // @Imported Global Variables
+  67          //****************************************************************************
+  68          
+  69          // USER CODE BEGIN (IR_General,6)
+  70          
+  71          // USER CODE END
+  72          
+  73          
+  74          //****************************************************************************
+  75          // @Global Variables
+  76          //****************************************************************************
+  77          
+  78          // USER CODE BEGIN (IR_General,7)
+  79          
+  80          // USER CODE END
+  81          
+  82          
+  83          //****************************************************************************
+  84          // @External Prototypes
+  85          //****************************************************************************
+  86          
+  87          // USER CODE BEGIN (IR_General,8)
+  88          // USER CODE END
+  89          
+  90          
+  91          //****************************************************************************
+  92          // @Prototypes Of Local Functions
+  93          //****************************************************************************
+  94          
+  95          // USER CODE BEGIN (IR_General,9)
+  96          
+  97          // USER CODE END
+  98          
+  99          
+ 100          //****************************************************************************
+ 101          // @Function      void INT_vInit(void) 
+ 102          //
+ 103          //----------------------------------------------------------------------------
+ 104          // @Description   This is the initialization function of the IR function 
+ 105          //                library. It is assumed that the SFRs used by this library 
+ 106          //                are in their reset state. 
+ 107          //                
+ 108          //                The project settings regarding the external interrupts are 
+ 109          //                taken over into the corresponding special function 
+ 110          //                registers IENx (interrupt enabling), TCON and EXICONx 
+ 111          //                (trigger selection)(x=0 or 1). The global enable Bit EA is 
+ 112          //                not changed. The initialization of the interrupt priorities 
+ 113          //                is located in function MAIN_vInit.
+ 114          //
+ 115          //----------------------------------------------------------------------------
+ 116          // @Returnvalue   None
+C51 COMPILER V8.04b   INT                                                                  03/17/2010 10:20:45 PAGE 3   
+
+ 117          //
+ 118          //----------------------------------------------------------------------------
+ 119          // @Parameters    None
+ 120          //
+ 121          //----------------------------------------------------------------------------
+ 122          // @Date          12.08.2009
+ 123          //
+ 124          //****************************************************************************
+ 125          
+ 126          // USER CODE BEGIN (IR_Init,1)
+ 127          
+ 128          // USER CODE END
+ 129          
+ 130          void INT_vInit(void)
+ 131          {
+ 132   1        // USER CODE BEGIN (IR_Init,2)
+ 133   1      
+ 134   1        // USER CODE END
+ 135   1      
+ 136   1        //   ------ Port initialization for Interrupt module-----
+ 137   1      
+ 138   1        //   ---------- Non Maskable Interrupt configuration ----------
+ 139   1      
+ 140   1        ///   NMIWDT disabled
+ 141   1        ///   NMIPLL enabled
+ 142   1        ///   NMIFLASH disabled
+ 143   1        ///   NMIOCDS disabled
+ 144   1        ///   NMIVDD enabled
+ 145   1        ///   NMIVDDP enabled
+ 146   1        ///   NMIECC enabled
+ 147   1        NMICON        =  0x72;         //  NMI Control Register 
+ 148   1        ///  ---------- external interrupt 0 ----------
+ 149   1        ///  disabled
+ 150   1      
+ 151   1        ///  ---------- external interrupt 1 ----------
+ 152   1        ///  disabled
+ 153   1      
+ 154   1        ///  ---------- external interrupt 2 ----------
+ 155   1        ///  disabled
+ 156   1      
+ 157   1        ///  ---------- external interrupt 3 to 6----------
+ 158   1        ///  disabled
+ 159   1      
+ 160   1        IEN0          =  0x02;         //  interrupt enable  register 0
+ 161   1        IEN1          =  0x00;         //  interrupt enable register 1
+ 162   1        EXICON0       =  0x00;         // external interrupt trigger select 
+ 163   1                                       // register 0
+ 164   1        EXICON1       =  0x00;         // external interrupt trigger select 
+ 165   1                                       // register 1
+ 166   1        MODPISEL      =  0x00;         // peripheral input select register 
+ 167   1        // USER CODE BEGIN (IR_Init,3)
+ 168   1      
+ 169   1        // USER CODE END
+ 170   1      
+ 171   1      } //  End of function INT_vInit
+ 172          
+ 173          
+ 174          //****************************************************************************
+ 175          // @Function      void INT_viNmiIsr(void) 
+ 176          //
+ 177          //----------------------------------------------------------------------------
+ 178          // @Description   This is the service routine for the Non Maskable 
+C51 COMPILER V8.04b   INT                                                                  03/17/2010 10:20:45 PAGE 4   
+
+ 179          //                Interrupts. 
+ 180          //                Please note that you have to add application specific code 
+ 181          //                to this function.
+ 182          //
+ 183          //----------------------------------------------------------------------------
+ 184          // @Returnvalue   None
+ 185          //
+ 186          //----------------------------------------------------------------------------
+ 187          // @Parameters    None
+ 188          //
+ 189          //----------------------------------------------------------------------------
+ 190          // @Date          12.08.2009
+ 191          //
+ 192          //****************************************************************************
+ 193          
+ 194          // USER CODE BEGIN (IR_IsrNMI,1)
+ 195          
+ 196          // USER CODE END
+ 197          
+ 198          void INT_viNmiIsr(void) interrupt NMIINT
+ 199          {
+ 200   1      
+ 201   1         // USER CODE BEGIN (IR_IsrNMI,2)
+ 202   1      
+ 203   1        // USER CODE END
+ 204   1      
+ 205   1        SFR_PAGE(_su0, noSST);         // switch to page0 without saving
+ 206   1      
+ 207   1      
+ 208   1        if( NMISR & 0x02 )// if NMIPLL request flag is set
+ 209   1        {
+ 210   2           NMISR &= ~(ubyte)0x02; //   clear FNMIPLL
+ 211   2      
+ 212   2        // USER CODE BEGIN (IR_IsrNMI,4)
+ 213   2           printf("FNMIPLL\n");
+ 214   2        // USER CODE END
+ 215   2      
+ 216   2         }
+ 217   1      
+ 218   1         if( NMISR & 0x10 )// if NMIVDD request flag is set
+ 219   1         {
+ 220   2            NMISR &= ~(ubyte)0x10; //   clear FNMIVDD
+ 221   2      
+ 222   2        // USER CODE BEGIN (IR_IsrNMI,7)
+ 223   2                printf("FNMIVDD\n");
+ 224   2        // USER CODE END
+ 225   2      
+ 226   2         }
+ 227   1      
+ 228   1        if( NMISR & 0x20 )// if NMIVDDP request flag is set
+ 229   1        {
+ 230   2            NMISR &= ~(ubyte)0x20; //   clear FNMIVDDP
+ 231   2      
+ 232   2        // USER CODE BEGIN (IR_IsrNMI,8)
+ 233   2                printf("FNMIVDDP\n");
+ 234   2        // USER CODE END
+ 235   2      
+ 236   2         }
+ 237   1      
+ 238   1         if( NMISR & 0x40 )// if NMIECC request flag is set
+ 239   1         {
+ 240   2            NMISR &= ~(ubyte)0x40; //   clear FNMIECC
+C51 COMPILER V8.04b   INT                                                                  03/17/2010 10:20:45 PAGE 5   
+
+ 241   2      
+ 242   2        // USER CODE BEGIN (IR_IsrNMI,9)
+ 243   2                printf("FNMIECC\n");
+ 244   2        // USER CODE END
+ 245   2      
+ 246   2         }
+ 247   1      
+ 248   1      
+ 249   1      } //  End of function INT_viNmiIsr
+ 250          
+ 251          
+ 252          // USER CODE BEGIN (IR_General,10)
+ 253          
+ 254          // USER CODE END
+ 255          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    158    ----
+   CONSTANT SIZE    =     37    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

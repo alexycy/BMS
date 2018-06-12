@@ -1,0 +1,21 @@
+"START_XC.obj",
+"IO.obj",
+"ADC.obj",
+"CC6.obj",
+"Routines.obj",
+"UART.obj",
+"MemoryXC8.obj",
+"XC88x_FLHANDLER.obj",
+"INT.obj",
+"CAN.obj",
+"Flash.obj",
+"Slave.obj",
+"Service.obj",
+"MAIN_own.obj" 
+TO "XC886_Batteriemanagement_III_NewSlave" 
+
+
+
+RESERVE (C:0xB000-C:0xB800, C:0xBFE0-C:0xBFFF)
+CLASSES (XDATA (X:0xF000-X:0xF5FF), HDATA (X:0xF000-X:0xF5FF), CODE (C:0x0-C:0x5FFF, C:0xA000-C:0xBFFF), CONST (C:0x0-C:0x5FFF, C:0xA000-C:0xBFFF), 
+ECODE (C:0x0-C:0x5FFF, C:0xA000-C:0xBFFF), HCONST (C:0x0-C:0x5FFF, C:0xA000-C:0xBFFF)) 

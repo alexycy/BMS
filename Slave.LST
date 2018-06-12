@@ -1,0 +1,302 @@
+C51 COMPILER V8.04b   SLAVE                                                                03/17/2010 10:20:45 PAGE 1   
+
+
+C51 COMPILER V8.04b, COMPILATION OF MODULE SLAVE
+OBJECT MODULE PLACED IN Slave.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE Slave.c LARGE OBJECTADVANCED OPTIMIZE(9,SPEED) BROWSE ORDER DEFINE(SLAVE_BO
+                    -ARDS,PRINT_ERROR,PRINT_WARNING,PRINT,PANASONIC_12_CELLS) DEBUG
+
+line level    source
+
+   1          #include <stdio.h>
+   2          #include <stdlib.h>
+   3          #include <math.h>
+   4          #include "MemoryXC8.h"
+   5          #include "Routines.h"
+   6          #include "Flash.h"
+   7          
+   8          
+   9          #ifdef SLAVE_BOARDS
+  10          
+  11          // global variables
+  12          unsigned int volatile CAN_MODATA_H[16] = { CAN_MODATAH16,  CAN_MODATAH17,  CAN_MODATAH18,  CAN_MODATAH19, 
+             - \
+  13                                                             CAN_MODATAH20,  CAN_MODATAH21,  CAN_MODATAH22,  CAN_MODATAH23,  \
+  14                                                                                             CAN_MODATAH24,  CAN_MODATAH25,  CAN_MODATAH26,  CAN_MODATAH27,  \
+  15                                                                                             CAN_MODATAH28,  CAN_MODATAH29,  CAN_MODATAH30,  CAN_MODATAH31 
+  16                                                   };  
+  17          unsigned int volatile CAN_MODATA_L[16] = { CAN_MODATAL16,  CAN_MODATAL17,  CAN_MODATAL18,  CAN_MODATAL19, 
+             - \
+  18                                                             CAN_MODATAL20,  CAN_MODATAL21,  CAN_MODATAL22,  CAN_MODATAL23,  \
+  19                                                                                             CAN_MODATAL24,  CAN_MODATAL25,  CAN_MODATAL26,  CAN_MODATAL27,  \
+  20                                                                                             CAN_MODATAL28,  CAN_MODATAL29,  CAN_MODATAL30,  CAN_MODATAL31 
+  21                                                   };  
+  22          unsigned int volatile CAN_MOCTR[16]    = { CAN_MOCTR16,  CAN_MOCTR17,  CAN_MOCTR18,  CAN_MOCTR19,  \
+  23                                                     CAN_MOCTR20,  CAN_MOCTR21,  CAN_MOCTR22,  CAN_MOCTR23,  \
+  24                                                                                     CAN_MOCTR24,  CAN_MOCTR25,  CAN_MOCTR26,  CAN_MOCTR27,  \
+  25                                                                                     CAN_MOCTR28,  CAN_MOCTR29,  CAN_MOCTR30,  CAN_MOCTR31 
+  26                                                   };  
+  27          
+  28          
+  29          // global const 
+  30          const unsigned int Board[16] = { 0x0001, 0x002, 0x0004, 0x0008, 0x0010, 0x0020, 0x0040, 0x0080, \
+  31                                           0x0100, 0x200, 0x0400, 0x0800, 0x1000, 0x2000, 0x4000, 0x8000}; 
+  32          
+  33          
+  34          
+  35          #define StartWithMO                16u                                                          
+  36          #define AllocateMessageObject(x)   (0x02000002LU | ((unsigned long)x<<16))
+  37          #define DeallocateMessageObject(x) (0x00000002LU | ((unsigned long)x<<16))
+  38          
+  39          
+  40          
+  41          //********************************************************
+  42          //                 Allocate of CAN Msg Obj 4, 5, 16-31 
+  43          //********************************************************                
+  44          void SlaveAllocateRelevantMessageObjects( char SlaveName )
+  45          {
+  46   1         CAN_vWriteCANAddress(CAN_PANCTR);                                   // Addressing CAN_PANCTR
+  47   1         CAN_vSetListCommand(AllocateMessageObject(4));                      // MO4 for list 2           = ping
+  48   1         CAN_vSetListCommand(AllocateMessageObject(5));                      // MO5 for list 2           = errors
+  49   1         CAN_vSetListCommand(AllocateMessageObject(SlaveName+StartWithMO));  // MO16-MO31 for list 2 = data              
+             -                     
+  50   1      }
+  51          
+C51 COMPILER V8.04b   SLAVE                                                                03/17/2010 10:20:45 PAGE 2   
+
+  52          //********************************************************
+  53          //                      all used CAN MO are deallocated
+  54          //********************************************************                
+  55          void SlaveDeallocateAllMessageObjects( void )
+  56          {
+  57   1         CAN_vWriteCANAddress(CAN_PANCTR);                  // Addressing CAN_PANCTR
+  58   1         CAN_vSetListCommand(DeallocateMessageObject(0));   // MO0  for list 2 = data, not more in usage!!!
+  59   1         CAN_vSetListCommand(DeallocateMessageObject(1));   // MO1  for list 2 = data, not more in usage!!!
+  60   1         CAN_vSetListCommand(DeallocateMessageObject(2));   // MO2  for list 2 = data, not more in usage!!!
+  61   1         CAN_vSetListCommand(DeallocateMessageObject(3));   // MO3  for list 2 = data, not more in usage!!!
+  62   1         CAN_vSetListCommand(DeallocateMessageObject(4));   // MO4  for list 2 = ping
+  63   1         CAN_vSetListCommand(DeallocateMessageObject(5));   // MO5  for list 2 = errors
+  64   1         // 16 MO for 16 boards are implemented
+  65   1         CAN_vSetListCommand(DeallocateMessageObject(16));  // MO16 for list 2 = data
+  66   1         CAN_vSetListCommand(DeallocateMessageObject(17));  // MO17 for list 2 = data
+  67   1         CAN_vSetListCommand(DeallocateMessageObject(18));  // MO18 for list 2 = data
+  68   1         CAN_vSetListCommand(DeallocateMessageObject(19));  // MO19 for list 2 = data
+  69   1         CAN_vSetListCommand(DeallocateMessageObject(20));  // MO20 for list 2 = data
+  70   1         CAN_vSetListCommand(DeallocateMessageObject(21));  // MO21 for list 2 = data
+  71   1         CAN_vSetListCommand(DeallocateMessageObject(22));  // MO22 for list 2 = data
+  72   1         CAN_vSetListCommand(DeallocateMessageObject(23));  // MO23 for list 2 = data
+  73   1         CAN_vSetListCommand(DeallocateMessageObject(24));  // MO24 for list 2 = data
+  74   1         CAN_vSetListCommand(DeallocateMessageObject(25));  // MO25 for list 2 = data
+  75   1         CAN_vSetListCommand(DeallocateMessageObject(26));  // MO26 for list 2 = data
+  76   1         CAN_vSetListCommand(DeallocateMessageObject(27));  // MO27 for list 2 = data
+  77   1         CAN_vSetListCommand(DeallocateMessageObject(28));  // MO28 for list 2 = data
+  78   1         CAN_vSetListCommand(DeallocateMessageObject(29));  // MO29 for list 2 = data
+  79   1         CAN_vSetListCommand(DeallocateMessageObject(30));  // MO30 for list 2 = data
+  80   1         CAN_vSetListCommand(DeallocateMessageObject(31));  // MO31 for list 2 = data
+  81   1      }
+  82          
+  83          
+  84          //********************************************************
+  85          //                      HAS SLAVE BEEN PINGED?
+  86          //********************************************************                
+  87          unsigned int SlaveHasBeenPinged(SlaveData *pSlaveData)
+  88          {
+  89   1         volatile unsigned char RxStatus = 0;
+  90   1         unsigned int idata     dat      = 0;
+  91   1      
+  92   1         // board name don't existing:Service mode
+  93   1         if(pSlaveData->Name < 0)
+  94   1          return 0; 
+  95   1         
+  96   1         // address status register 
+  97   1         CAN_vWriteCANAddress(CAN_MOCTR4);                     
+  98   1         // enable
+  99   1         CAN_vReadEN();
+ 100   1         // read data  
+ 101   1         RxStatus = CAN_DATA0; 
+ 102   1           
+ 103   1         // data is pending 
+ 104   1         if( (RxStatus & MOSTAT_RXPND) == MOSTAT_RXPND )
+ 105   1         {      
+ 106   2                // clear flag
+ 107   2                pSlaveData->Error     &= ~SlaveGetsNoPing;
+ 108   2                pSlaveData->ErrorType &= ~CommunicationFailure;
+ 109   2      
+ 110   2                // read the receiving data?                             
+ 111   2            CAN_vWriteCANAddress(CAN_MODATAL4);      
+ 112   2            // enable
+ 113   2            CAN_vReadEN();                                    
+C51 COMPILER V8.04b   SLAVE                                                                03/17/2010 10:20:45 PAGE 3   
+
+ 114   2            // read value     
+ 115   2            dat = CAN_DATA01;
+ 116   2      
+ 117   2            // IN- or INTER-BLOCK-BALANCING   
+ 118   2            if( dat & Board[pSlaveData->Name] ) 
+ 119   2              //    a '1' is receiving
+ 120   2              pSlaveData->BLOCK_BALANCING = INTER_BLOCK;
+ 121   2            else // a '0' is receiving                                                  
+ 122   2              pSlaveData->BLOCK_BALANCING = IN_BLOCK;
+ 123   2                                               
+ 124   2            // address status register    
+ 125   2            CAN_vWriteCANAddress(CAN_MOCTR4);
+ 126   2            // write bit
+ 127   2            CAN_DATA0 = MOSTAT_RXPND;  
+ 128   2            // enable
+ 129   2            CAN_vWriteEN(D0_VALID);    
+ 130   2                // return received data
+ 131   2                return dat;
+ 132   2          }
+ 133   1         else  // no pending data
+ 134   1         {
+ 135   2           // save error
+ 136   2           pSlaveData->Error     |= SlaveGetsNoPing; 
+ 137   2           pSlaveData->ErrorType |= CommunicationFailure;     
+ 138   2               
+ 139   2               return 0;      
+ 140   2         }
+ 141   1      }                                                               
+ 142          
+ 143          
+ 144          //********************************************************
+ 145          //                      HAS SLAVE BEEN REQUESTED?
+ 146          //********************************************************                
+ 147          char SlaveHasBeenRequested(SlaveData *pSlaveData)
+ 148          {
+ 149   1         volatile unsigned char RxStatus = 0;
+ 150   1         volatile unsigned long i;
+ 151   1      
+ 152   1         // board name don't existing:Service mode
+ 153   1         if(pSlaveData->Name < 0)
+ 154   1          return 0; 
+ 155   1      
+ 156   1         // times     some sec.
+ 157   1         for(i=0; i<50000UL; i++)
+ 158   1         {
+ 159   2            // address status register 
+ 160   2            CAN_vWriteCANAddress(CAN_MOCTR[pSlaveData->Name]);         
+ 161   2            // enable
+ 162   2            CAN_vReadEN();
+ 163   2            // read data  
+ 164   2            RxStatus = CAN_DATA0; 
+ 165   2            // no request pending
+ 166   2                if( (RxStatus & MOSTAT_RXPND) != MOSTAT_RXPND )
+ 167   2                         continue;
+ 168   2                else // okay
+ 169   2                     return 0;
+ 170   2         }
+ 171   1      
+ 172   1          // save error
+ 173   1          pSlaveData->Error     |= SlaveGetsNoReq; 
+ 174   1          pSlaveData->ErrorType |= CommunicationFailure;               
+ 175   1          // error
+C51 COMPILER V8.04b   SLAVE                                                                03/17/2010 10:20:45 PAGE 4   
+
+ 176   1          return 1;   
+ 177   1      }                                                               
+ 178          
+ 179          //********************************************************
+ 180          //                                SLAVE READ COMMAND PIPE
+ 181          //********************************************************                
+ 182          void SlaveErrorProcessing(SlaveData *pSlaveData)
+ 183          {  
+ 184   1         // board name don't existing:Service mode
+ 185   1         if(pSlaveData->Name < 0)
+ 186   1          return; 
+ 187   1            
+ 188   1         // checks board failure
+ 189   1         if( (pSlaveData->Error    & (BlockUnderLevel | TempOverLevel | CellUnderLevel  | CellOverLevel | SlaveG
+             -etsNoPing) ) || \
+ 190   1             (pSlaveData->ErrorType &   (BoardFailure | CommunicationFailure) ))
+ 191   1         {       
+ 192   2               
+ 193   2         #if defined (PRINT_ERROR)
+ 194   2               printf("ErrorType: 0x%bx ErrorID: 0x%bx\n", (unsigned char)pSlaveData->ErrorType, (unsigned char)pSlaveD
+             -ata->Error);
+ 195   2         #endif
+ 196   2         
+ 197   2         #ifdef FLASH_DATA   
+                       // read flash
+                       FlashCalculateAdr(pSlaveData);                  
+                       // and buffer errors
+                   FlashBufferErrors(pSlaveData);                                                                                                      
+                       // flash errors
+                       FlashErrors(pSlaveData);                        
+                 #endif
+ 205   2                 
+ 206   2               // send out MO5 to Master
+ 207   2           CAN_vWriteCANAddress(CAN_MODATAL5);                    
+ 208   2           // load error data
+ 209   2           CAN_DATA0 = (unsigned char)(pSlaveData->ErrorType);                            
+ 210   2           CAN_DATA1 = (unsigned char)(pSlaveData->Error);                                                
+ 211   2           // declare both values as valid
+ 212   2           CAN_vWriteEN(D0_VALID+D1_VALID);               
+ 213   2               // slave sends System Failure to Master
+ 214   2           CAN_vTransmit(5);  
+ 215   2         }
+ 216   1      }
+ 217          
+ 218          //********************************************************
+ 219          //                            PREPARE BOARDS FOR CAN
+ 220          //******************************************************                
+ 221          void SlavePrepareOwnBoardDataForCAN(SlaveData *pSlaveData)
+ 222          {
+ 223   1         // board name don't existing:Service mode
+ 224   1         if(pSlaveData->Name < 0)
+ 225   1          return; 
+ 226   1         
+ 227   1         // store board min cell format Q4.12 -> Q11.5
+ 228   1         pSlaveData->CanData.MinCell =      (unsigned char)(pSlaveData->Umin_u >> 7);    
+ 229   1         // store board max cell format Q4.12 -> Q11.5
+ 230   1         pSlaveData->CanData.MaxCell =      (unsigned char)(pSlaveData->Umax_u >> 7);   
+ 231   1         // store board min temp format Q16.0
+ 232   1         pSlaveData->CanData.MinTemp =      (int)(pSlaveData->Tmin);                   
+ 233   1         // store board max temp format Q16.0
+ 234   1         pSlaveData->CanData.MaxTemp =      (int)(pSlaveData->Tmax);                   
+ 235   1         // store board voltage format Q8.8
+C51 COMPILER V8.04b   SLAVE                                                                03/17/2010 10:20:45 PAGE 5   
+
+ 236   1         pSlaveData->CanData.BoardVoltage = (unsigned int)(pSlaveData->Ublock);   
+ 237   1      
+ 238   1         // write buffer with 4 byte
+ 239   1         CAN_vWriteCANAddress(CAN_MODATA_L[pSlaveData->Name]);                    
+ 240   1         // format Q11.5
+ 241   1         CAN_DATA0  =                       (unsigned char)pSlaveData->CanData.MaxCell;               
+ 242   1         // format Q11.5
+ 243   1         CAN_DATA1  =                       (unsigned char)pSlaveData->CanData.MinCell;               
+ 244   1         // format Q16.0
+ 245   1         CAN_DATA23 =                       (int)pSlaveData->CanData.MinTemp;                    
+ 246   1         // declare both values as valid
+ 247   1         CAN_vWriteEN(ALL_DATA_VALID);           
+ 248   1         
+ 249   1         // write buffer with 4 byte                     
+ 250   1         CAN_vWriteCANAddress(CAN_MODATA_H[pSlaveData->Name]);                              
+ 251   1         // format Q16.0
+ 252   1         CAN_DATA01 =                       (int)pSlaveData->CanData.MaxTemp;                 
+ 253   1         // format Q8.8       
+ 254   1         CAN_DATA23 =                       (unsigned int)pSlaveData->CanData.BoardVoltage;  
+ 255   1         // declare both values as valid
+ 256   1         CAN_vWriteEN(ALL_DATA_VALID);                                 
+ 257   1      }
+ 258          
+ 259          
+ 260          #endif
+ 261          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1270    ----
+   CONSTANT SIZE    =     33    ----
+   XDATA SIZE       =    128      16
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----       2
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

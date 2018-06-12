@@ -1,0 +1,667 @@
+C51 COMPILER V8.04b   SERVICE                                                              03/17/2010 10:20:45 PAGE 1   
+
+
+C51 COMPILER V8.04b, COMPILATION OF MODULE SERVICE
+OBJECT MODULE PLACED IN Service.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE Service.c LARGE OBJECTADVANCED OPTIMIZE(9,SPEED) BROWSE ORDER DEFINE(SLAVE_
+                    -BOARDS,PRINT_ERROR,PRINT_WARNING,PRINT,PANASONIC_12_CELLS) DEBUG
+
+line level    source
+
+   1          #include <stdio.h>
+   2          #include <stdlib.h>
+   3          #include <math.h>
+   4          #include "MemoryXC8.h"
+   5          #include "Routines.h"
+   6          #include "Flash.h"
+   7          
+   8          // external functions
+   9          extern void ScanTempAndBlockVoltage(SlaveData *pSlaveData);
+  10          extern void ScanCells(SlaveData *pSlaveData);
+  11          extern void PrintAll(SlaveData *pSlaveData);
+  12          extern void CellBalancing(SlaveData *pSlaveData);
+  13          extern void IsAnyCellOutOfRange(SlaveData *pSlaveData);
+  14          extern void IsTemperatureAndBlockOutOfRange(SlaveData *pSlaveData);
+  15          extern void Print(SlaveData *pSlaveData);
+  16          extern void PrintDigit(SlaveData *pSlaveData);
+  17          // external variable
+  18          extern char idata FLAG_Pin;
+  19          
+  20          
+  21          void ServiceMode(SlaveData *pSlaveData)
+  22          {
+  23   1        unsigned long loop;
+  24   1        unsigned char i, c;              
+  25   1        char argsread;  
+  26   1      
+  27   1        // clear read interrupt
+  28   1        RI=0;
+  29   1         
+  30   1        //**********************************************************
+  31   1        //                                         MENUE
+  32   1        //**********************************************************
+  33   1        do
+  34   1        {
+  35   2           printf("\n\n- Service Mode - press any key to start\n");
+  36   2           printf("s   = single scan\n");                     
+  37   2           printf("b   = bottom 1x\n");
+  38   2           printf("t   = top 1x\n");
+  39   2           printf("i   = inter block 1x\n");
+  40   2           printf("m   = scan+balancing (select mode)\n");
+  41   2               printf("u   = scan+balancing (normal mode)\n");
+  42   2           printf("c   = calibration\n");
+  43   2               printf("r   = write/read flashed errors\n");
+  44   2               printf("ST  = board SelfTest switch S3 to F\n");
+  45   2      
+  46   2               do
+  47   2               { 
+  48   3      //#ifdef SM_LIGHT       
+  49   3      //         // LED on -> only for debug
+  50   3      //         LED_ON;
+  51   3      //         // pause                                                                      
+  52   3      //         for(loop=0; loop<20000; loop++);
+  53   3      //         // LED off -> only for debug
+  54   3      //         LED_OFF;
+C51 COMPILER V8.04b   SERVICE                                                              03/17/2010 10:20:45 PAGE 2   
+
+  55   3      //#endif
+  56   3                 // pause
+  57   3                 for(loop=0; loop<20000; loop++);
+  58   3                 // scan temp
+  59   3                 ScanTempAndBlockVoltage(pSlaveData);
+  60   3                 // sort temp
+  61   3                 GetAndSortTemperature(pSlaveData); 
+  62   3               }while( ((RI==0) && !(pSlaveData->Uident < U2_48V)));
+  63   2               
+  64   2               //*********************
+  65   2               //         menue
+  66   2               //*********************
+  67   2               if(RI)
+  68   2           { 
+  69   3                  RI=0;
+  70   3      
+  71   3                      // 'b' = bottom balancing
+  72   3                      if(SBUF==0x62) 
+  73   3                      {
+  74   4                        do
+  75   4                        {
+  76   5                         printf("\n BottomBalancing 1x... enter the battery cell: ");
+  77   5                         argsread = scanf ("%bu", &i);
+  78   5                        }while( getchar() != '\n' );                  
+  79   4                        
+  80   4                        if(argsread==0)
+  81   4                          continue;                                            
+  82   4                        
+  83   4                        do
+  84   4                        {             
+  85   5                               pSlaveData->LowestCellIndex = i;
+  86   5                               pSlaveData->BalanceCellIndex[pSlaveData->LowestCellIndex] = i;
+  87   5                               BottomBalancing(pSlaveData);
+  88   5                               printf(" press any key to repeat or ESC\n");
+  89   5                                      
+  90   5                               // press 's' for stop 
+  91   5                               do{ _nop_(); }while(RI==0 );                                                                             
+  92   5                               
+  93   5                               RI=0;                  
+  94   5                               // escape
+  95   5                               if(SBUF==0x1B)
+  96   5                               {
+  97   6                         printf("\nEscape.....\n");
+  98   6                         break;
+  99   6                               }                
+ 100   5                        }while(1);
+ 101   4                      } // end bottom balancing
+ 102   3              
+ 103   3                      // 't' = top    balancing
+ 104   3                      if(SBUF==0x74) 
+ 105   3                      {
+ 106   4                        do
+ 107   4                        {
+ 108   5                         printf("\n TopBalancing 1x... enter the battery cell: ");
+ 109   5                         argsread = scanf ("%bu", &i);
+ 110   5                        }while( getchar() != '\n' );                  
+ 111   4                        
+ 112   4                        if(argsread==0)
+ 113   4                          continue;                                            
+ 114   4                                        
+ 115   4                        do
+ 116   4                        {                                      
+C51 COMPILER V8.04b   SERVICE                                                              03/17/2010 10:20:45 PAGE 3   
+
+ 117   5                               pSlaveData->BalanceCellIndex[0] = i;
+ 118   5                               TopBalancing(pSlaveData);
+ 119   5                               printf(" press any key to repeat or ESC\n");
+ 120   5                                      
+ 121   5                               // press 's' for stop 
+ 122   5                               do{ _nop_(); }while(RI==0 );                                                                             
+ 123   5                               
+ 124   5                               RI=0;                  
+ 125   5                               // escape
+ 126   5                               if(SBUF==0x1B)
+ 127   5                               {
+ 128   6                         printf("\nEscape.....\n");
+ 129   6                         break;
+ 130   6                               }                
+ 131   5                        }while(1);
+ 132   4                      } // end top balancing
+ 133   3                      
+ 134   3                      // 'i' = inter block balancing
+ 135   3                      if(SBUF==0x69) 
+ 136   3                      {
+ 137   4                        do
+ 138   4                        {
+ 139   5                         printf("\n InterBlockBalancing 1x... enter the battery cell: ");
+ 140   5                         argsread = scanf ("%bu", &i);
+ 141   5                        }while( getchar() != '\n' );                  
+ 142   4                        
+ 143   4                        if(argsread==0)
+ 144   4                          continue;                                            
+ 145   4                        
+ 146   4                        do
+ 147   4                        {                                     
+ 148   5                              pSlaveData->BalanceCellIndex[0] = i;
+ 149   5                              InterBlockTopBalancing(pSlaveData);
+ 150   5                              printf(" press any key to repeat or ESC\n");
+ 151   5                              
+ 152   5                              // press 's' for stop 
+ 153   5                              do{ _nop_(); }while(RI==0 );                                                                              
+ 154   5                              
+ 155   5                              RI=0;                   
+ 156   5                              // escape
+ 157   5                              if(SBUF==0x1B)
+ 158   5                              {
+ 159   6                        printf("\nEscape.....\n");
+ 160   6                        break;
+ 161   6                              }                 
+ 162   5                        }while(1);
+ 163   4                      } // end inter block balancing 
+ 164   3                      
+ 165   3                      // 'r' = read flashed errors
+ 166   3                      if(SBUF==0x72)  
+ 167   3                      {                                                                                                                                         
+ 168   4                        printf("\n Write/Read flashed errors / ESC\n");
+ 169   4                
+ 170   4                // simulated errors
+ 171   4                pSlaveData->Error   |= CellOverLevel;  
+ 172   4                pSlaveData->Error   |= CellUnderLevel; 
+ 173   4                pSlaveData->Error   |= TempOverLevel;     
+ 174   4                pSlaveData->Error   |= SlaveGetsNoPing;
+ 175   4                        pSlaveData->Warning |= TempShortCut;
+ 176   4                pSlaveData->Warning |= TempOpen;
+ 177   4      
+ 178   4                // read flash
+C51 COMPILER V8.04b   SERVICE                                                              03/17/2010 10:20:45 PAGE 4   
+
+ 179   4                FlashCalculateAdr(pSlaveData);                         
+ 180   4                // and buffer errors
+ 181   4                FlashBufferErrors(pSlaveData);                                                                                                         
+ 182   4                // flash errors
+ 183   4                FlashErrors(pSlaveData);                       
+ 184   4                        
+ 185   4                        do
+ 186   4                        {                                     
+ 187   5                              // read flashed errors
+ 188   5                              FlashReadErrors(pSlaveData);
+ 189   5                              printf(" press any key to repeat or ESC\n");                
+ 190   5                          // press 's' for stop 
+ 191   5                          do{ _nop_(); }while(RI==0 );                                                                                  
+ 192   5                          
+ 193   5                          RI=0;
+ 194   5                          // escape 
+ 195   5                          if(SBUF==0x1B)
+ 196   5                          {
+ 197   6                    printf("\nEscape.....\n");
+ 198   6                    break;
+ 199   6                          }
+ 200   5                        }while(1);
+ 201   4                      } // end read flashed errors
+ 202   3                      
+ 203   3                      // 's' = single scan                
+ 204   3                      if(SBUF==0x73)  
+ 205   3                      {
+ 206   4                        // read factors                                                                                                 
+ 207   4                FlashReadBoardCorrValues(pSlaveData);
+ 208   4      
+ 209   4                        do{
+ 210   5                          printf("\n Single scan...\n");
+ 211   5                              // scan all Temperature sensors
+ 212   5                  ScanTempAndBlockVoltage(pSlaveData);
+ 213   5                              // scan all cells
+ 214   5                  ScanCells(pSlaveData);
+ 215   5                              // calculate min/max cells
+ 216   5                              GetAndSortAllCellVoltages(pSlaveData);
+ 217   5                              // calculate min/max temperature
+ 218   5                              GetAndSortTemperature(pSlaveData);
+ 219   5                          // print digit values
+ 220   5                          PrintDigit(pSlaveData);                     
+ 221   5                              // print
+ 222   5                              PrintAll(pSlaveData);
+ 223   5      
+ 224   5                              printf(" press any key to repeat or ESC\n");                
+ 225   5                          // press 's' for stop 
+ 226   5                          do{ _nop_(); }while(RI==0 );                                                                                  
+ 227   5                          
+ 228   5                          RI=0;
+ 229   5                          // escape 
+ 230   5                          if(SBUF==0x1B)
+ 231   5                          {
+ 232   6                    printf("\nEscape.....\n");
+ 233   6                    break;
+ 234   6                          }
+ 235   5                        }while(1);
+ 236   4                      } // end single scan
+ 237   3      
+ 238   3                      // 'm' = scan + balancing
+ 239   3                      if(SBUF==0x6d)  
+ 240   3                      {
+C51 COMPILER V8.04b   SERVICE                                                              03/17/2010 10:20:45 PAGE 5   
+
+ 241   4                        // read factors                                                                                                 
+ 242   4                FlashReadBoardCorrValues(pSlaveData);
+ 243   4                      
+ 244   4                        do
+ 245   4                        {
+ 246   5                          printf("\n Balancing 1x... enter the battery cell (0-11): ");
+ 247   5                          argsread = scanf ("%bu", &i);
+ 248   5                        }while( getchar() != '\n' );                                    
+ 249   4                        if(argsread==0)
+ 250   4                          continue;                                            
+ 251   4                        
+ 252   4                        do
+ 253   4                        {
+ 254   5                          printf(" Top / Bottom / Inter Balancing (t/b/i): ");
+ 255   5                          argsread = scanf ("%c", &c);
+ 256   5                        }while( getchar() != '\n' );                                    
+ 257   4                        if(argsread==0)
+ 258   4                          continue;                                            
+ 259   4                        
+ 260   4                        do{
+ 261   5                          printf("\n Scan+Balancing...(select mode)\n");
+ 262   5                              // scan all Temperature sensors
+ 263   5                              ScanTempAndBlockVoltage(pSlaveData);
+ 264   5                              // scan all cells
+ 265   5                              ScanCells(pSlaveData);
+ 266   5                  // sort all cells
+ 267   5                              GetAndSortAllCellVoltages(pSlaveData);
+ 268   5                      // calculate min/max temperature
+ 269   5                              GetAndSortTemperature(pSlaveData);
+ 270   5                          // print
+ 271   5                              PrintAll(pSlaveData); 
+ 272   5                                                      
+ 273   5                              // preparation
+ 274   5                              switch(c)
+ 275   5                              {
+ 276   6                                case 'b':pSlaveData->BLOCK_BALANCING &= ~INTER_BLOCK;
+ 277   6                                         pSlaveData->Uaver_u = U_Level_aver1; 
+ 278   6                                         pSlaveData->Umax_u  = UmaxLevel;
+ 279   6                                         pSlaveData->Umin_u  = UminLevel;
+ 280   6                                                 pSlaveData->BalanceCellIndex[pSlaveData->LowestCellIndex] = i;
+ 281   6                                                 break;
+ 282   6                                case 't':pSlaveData->BLOCK_BALANCING &= ~INTER_BLOCK;
+ 283   6                                         pSlaveData->Uaver_u = U_Level_aver2; 
+ 284   6                                         pSlaveData->Umax_u  = UmaxLevel;
+ 285   6                                         pSlaveData->Umin_u  = UminLevel;
+ 286   6                                         pSlaveData->BalanceCellIndex[0] = i;
+ 287   6                                         break;
+ 288   6                                case 'i':pSlaveData->BLOCK_BALANCING |= INTER_BLOCK;
+ 289   6                                         pSlaveData->Uaver_u = U_Level_aver2; 
+ 290   6                                         pSlaveData->Umax_u  = UmaxLevel;
+ 291   6                                         pSlaveData->Umin_u  = UminLevel;
+ 292   6                                                 pSlaveData->BalanceCellIndex[0] = i;
+ 293   6                                         break;
+ 294   6                                default: printf("fault\n");
+ 295   6                              }
+ 296   5                                                      
+ 297   5                              // use Top- or BottomBalancing
+ 298   5                  CellBalancing(pSlaveData);  
+ 299   5                  printf(" press any key to repeat or ESC\n");        
+ 300   5                          
+ 301   5                          // press 's' for stop 
+ 302   5                          do{ _nop_(); }while(RI==0 );                                                                                                         
+C51 COMPILER V8.04b   SERVICE                                                              03/17/2010 10:20:45 PAGE 6   
+
+ 303   5                      RI=0;                   
+ 304   5                          
+ 305   5                          // escape 'ESC'
+ 306   5                          if(SBUF==0x1B)
+ 307   5                          {
+ 308   6                    printf("\nEscape.....\n");
+ 309   6                    break;
+ 310   6                          }
+ 311   5                        }while(1);
+ 312   4                      } // end scan + balancing
+ 313   3           
+ 314   3                      // 'u' = scan + balancing (normal)
+ 315   3                      if(SBUF==0x75)  
+ 316   3                      {
+ 317   4                        // read factors                                                                                                 
+ 318   4                FlashReadBoardCorrValues(pSlaveData);           
+ 319   4                        printf("\n Scan+Balancing...(normal mode) / ESC\n");
+ 320   4                        
+ 321   4                        do{               
+ 322   5                              // scan all Temperature sensors
+ 323   5                              ScanTempAndBlockVoltage(pSlaveData);
+ 324   5                              // scan all cells
+ 325   5                              ScanCells(pSlaveData);
+ 326   5                  // sort all cells
+ 327   5                              GetAndSortAllCellVoltages(pSlaveData);
+ 328   5                      // calculate min/max temperature
+ 329   5                              GetAndSortTemperature(pSlaveData);
+ 330   5                          // print
+ 331   5                              PrintAll(pSlaveData); 
+ 332   5                  
+ 333   5                              // clear INTER Block BALANCING
+ 334   5                  pSlaveData->BLOCK_BALANCING &= ~INTER_BLOCK;                                                                                                                                                                                                                                        
+             -                        
+ 335   5                              // use Top- or BottomBalancing
+ 336   5                  CellBalancing(pSlaveData);  
+ 337   5                              
+ 338   5                          RI=0;
+ 339   5                          // escape 
+ 340   5                          if(SBUF==0x1B)
+ 341   5                          {
+ 342   6                    printf("\nEscape.....\n");
+ 343   6                    break;
+ 344   6                          }
+ 345   5                        }while(1);
+ 346   4                      } // end scan + balancing (normal)
+ 347   3      
+ 348   3      
+ 349   3                      // 'c' = calibration
+ 350   3                      if(SBUF==0x63)  
+ 351   3                      {
+ 352   4                         float Multi_f[Cells+1], Multi_f_temp[Cells+1], Multi_Block_f;
+ 353   4                         float Uadc_f_temp[Cells+1], Ufac[Cells+1], Uadc_Block_f_temp, Ufac_Block;
+ 354   4                         unsigned int Ufac_u[Cells+1], p, Ufac_Block_u;
+ 355   4                         char i, j, argsread, c;
+ 356   4                                               
+ 357   4                         // Factors=0,5 as Q.15
+ 358   4                         for(i=0; i<Cells; i++)
+ 359   4                           pSlaveData->Ufac_u[i] = Ucell_Grade*32;   //=16384    
+ 360   4                         // block: 10.946f*4096
+ 361   4                         pSlaveData->Ufac_u[Cells] = Ublock_Grade;
+ 362   4                         
+ 363   4                         // ((0.5f*U+offset)*4096+delta);
+C51 COMPILER V8.04b   SERVICE                                                              03/17/2010 10:20:45 PAGE 7   
+
+ 364   4                         for(p=0; p<3; p++)
+ 365   4                         {
+ 366   5                           // scan all Temperature sensors
+ 367   5                           ScanTempAndBlockVoltage(pSlaveData);
+ 368   5                           // scan all cells
+ 369   5                           ScanCells(pSlaveData);     
+ 370   5                         }                                            
+ 371   4                         
+ 372   4                         // sort all cells
+ 373   4                         GetAndSortAllCellVoltages(pSlaveData);
+ 374   4                         // calculate min/max temperature
+ 375   4                         GetAndSortTemperature(pSlaveData);    
+ 376   4                         // print     digit values
+ 377   4                         PrintDigit(pSlaveData);
+ 378   4                         // print
+ 379   4                         PrintAll(pSlaveData);
+ 380   4                                      
+ 381   4        // CALIBRATE VOLTAGE BLOCK               
+ 382   4                         // read block voltage
+ 383   4                         for (i=0; i<1; i++)
+ 384   4                         {                                             
+ 385   5                           do
+ 386   5                           {
+ 387   6                             printf ("Enter the block voltage:");
+ 388   6                             argsread = scanf ("%f", &Multi_Block_f);
+ 389   6                             printf ("value %.3f \n", Multi_Block_f);
+ 390   6                           }while( getchar() != '\n' );
+ 391   5                          
+ 392   5                           if(argsread==0)
+ 393   5                           {
+ 394   6                             i--;
+ 395   6                             continue;                                                 
+ 396   6                           }
+ 397   5                         }
+ 398   4      
+ 399   4                         // calculation                                  
+ 400   4                         // U_scan float
+ 401   4                         Uadc_Block_f_temp = (float)pSlaveData->Ublock/(float)256;    //Q.8
+ 402   4                         // m=y1/yo                                                                                   
+ 403   4                         Ufac_Block = (Multi_Block_f/Uadc_Block_f_temp);
+ 404   4                         
+ 405   4                         printf ("go'[%bu]:%.4f\n", i, Ufac_Block);
+ 406   4                         Ufac_Block_u = (unsigned int)((float)Ufac_Block*pSlaveData->Ufac_u[Cells]+delta);                                      
+ 407   4        // BLOCK_END             
+ 408   4                
+ 409   4                 #if defined (A123_BATTERY_10_CELLS)     
+                                 //***************************
+                                 //   Cell U0-U4, U7-U11
+                                 //***************************                                                                                
+                                 for(j=0; j<8; j=j+7)
+                                 {
+                                   for (i=0+j; i<Cell_5+j; i++)
+                                   {                                           
+                                     do
+                                     {
+                                       printf ("Enter the %bu. battery cell:", i);
+                                       argsread = scanf ("%f", &(Multi_f+i));
+                                       printf ("value %.3f \n", Multi_f[i]);
+                                     }while( getchar() != '\n' );
+                                       
+                                     if(argsread==0)
+                                     {
+C51 COMPILER V8.04b   SERVICE                                                              03/17/2010 10:20:45 PAGE 8   
+
+                                       i--;
+                                       continue;                                               
+                                     }
+                                   }
+                                 }
+                              
+                                 // calculation
+                                 for (i=0; i<Cells; i++)
+                                 {
+                                   // Umultimeter float (y1-off)
+                                   Multi_f_temp[i]= (float)Multi_f[i]- Uoff_f;
+                                   // U_scan float (yo-off)
+                                   Uadc_f_temp[i] = (float)pSlaveData->Umux_u[i]/(float)4096- Uoff_f;
+                                   // m=g1/g0 =(y1-off)/(yo-off)                                                                                      
+                                   Ufac[i] = (Multi_f_temp[i]/Uadc_f_temp[i]);
+                                   // new factor go'=m*go=factor*0.5
+                                   //Ufac[i] *= 0.5f;
+                                   printf ("go'[%bu]:%.4f\n", i, Ufac[i]);
+              
+                                   //if( (Ufac[i] > 1.0f) || (Ufac[i] < 0.0f) )
+                                   //   printf ("Ufac[%bu]:%.3f > 1 !!!\n", i, Ufac[i]);
+                                   // unsigned int has the format 2^15
+                                   Ufac_u[i] = (unsigned int)((float)Ufac[i]*(Ucell_Grade*32)+delta);                                   
+                                 }
+                                      
+                                 //***************************
+                                 //             Cell U5-U6=0
+                                 //***************************                                                                            
+                                 for (i=Cell_5; i<Cell_7; i++)
+                                 {
+                                   Multi_f[i] = 0;
+                                   pSlaveData->Ufac_u[i] = 0;
+                                 }
+                         #elif defined (MAXWELL_9_CELLS)   
+                                 //***************************
+                                 //   Cell U0-U4, U8-U11
+                                 //***************************                                                                                
+                                 for(j=0; j<9; j=j+8)
+                                 {
+                                   for (i=0+j; i<Cell_5+j; i++)
+                                   {                                           
+                                     do
+                                     {
+                                       printf ("Enter the %bu. battery cell:", i);
+                                       argsread = scanf ("%f", &(Multi_f+i));
+                                       printf ("value %.3f \n", Multi_f[i]);
+                                     }while( getchar() != '\n' );
+                                       
+                                     if(argsread==0)
+                                     {
+                                       i--;
+                                       continue;                                               
+                                     }
+                                   }
+                                 }
+                              
+                                 // calculation
+                                 for (i=0; i<Cells; i++)
+                                 {
+                                   // Umultimeter float (y1-off)
+                                   Multi_f_temp[i]= (float)Multi_f[i]- Uoff_f;
+                                   // U_scan float (yo-off)
+C51 COMPILER V8.04b   SERVICE                                                              03/17/2010 10:20:45 PAGE 9   
+
+                                   Uadc_f_temp[i] = (float)pSlaveData->Umux_u[i]/(float)4096- Uoff_f;
+                                   // m=g1/g0 =(y1-off)/(yo-off)                                                                                      
+                                   Ufac[i] = (Multi_f_temp[i]/Uadc_f_temp[i]);
+                                   // new factor go'=m*go=factor*0.5
+                                   //Ufac[i] *= 0.5f;
+                                   printf ("go'[%bu]:%.3f\n", i, Ufac[i]);
+              
+                                   //if( (Ufac[i] > 1.0f) || (Ufac[i] < 0.0f) )
+                                   //   printf ("Ufac[%bu]:%.3f > 1 !!!\n", i, Ufac[i]);
+                                   // unsigned int has the format 2^15
+                                   Ufac_u[i] = (unsigned int)((float)Ufac[i]*(Ucell_Grade*32)+delta);                                   
+                                 }
+                                      
+                                 //***************************
+                                 //             Cell U5-U7=0
+                                 //***************************                                                                            
+                                 for (i=Cell_5; i<Cell_8; i++)
+                                 {
+                                   Multi_f[i] = 0;
+                                   pSlaveData->Ufac_u[i] = 0;
+                                 }
+                         #elif defined (LITEC_BATTERY_12_CELLS) || defined (PANASONIC_12_CELLS) || defined (MAXWELL_12_CELLS)
+ 510   4                         //***************************
+ 511   4                         //   Cell U0-U11
+ 512   4                         //***************************                                                                                                   
+ 513   4                         for(j=0; j<Cells; j++)
+ 514   4                         {
+ 515   5                            do
+ 516   5                            {
+ 517   6                               printf ("Enter the %bu. battery cell:", j);
+ 518   6                               argsread = scanf ("%f", &(Multi_f+j));
+ 519   6                               printf ("value %.3f \n", Multi_f[j]);
+ 520   6                            }while( getchar() != '\n' );
+ 521   5                               
+ 522   5                            if(argsread==0)
+ 523   5                            {
+ 524   6                              j--;
+ 525   6                              continue;                                                
+ 526   6                            }
+ 527   5                         }
+ 528   4                          
+ 529   4                         // calculation
+ 530   4                         for (i=0; i<Cells; i++)
+ 531   4                         {
+ 532   5                           // Umultimeter float (y1-off)
+ 533   5                           Multi_f_temp[i]= (float)Multi_f[i]- Uoff_f;
+ 534   5                           // U_scan float (yo-off)
+ 535   5                           Uadc_f_temp[i] = (float)pSlaveData->Umux_u[i]/(float)4096- Uoff_f;
+ 536   5                           // m=g1/g0 =(y1-off)/(yo-off)                                                                                      
+ 537   5                           Ufac[i] = (Multi_f_temp[i]/Uadc_f_temp[i]);
+ 538   5                           // new factor go'=m*go=factor*0.5
+ 539   5                           //Ufac[i] *= 0.5f;
+ 540   5                           printf ("go'[%bu]:%.3f\n", i, Ufac[i]);
+ 541   5      
+ 542   5                           //if( (Ufac[i] > 1.0f) || (Ufac[i] < 0.0f))
+ 543   5                           //   printf ("Ufac[%bu]:%.3f > 1 !!!\n", i, Ufac[i]);
+ 544   5                           // unsigned int has the format 2^15
+ 545   5                           Ufac_u[i] = (unsigned int)((float)Ufac[i]*(Ucell_Grade*32)+delta);                                   
+ 546   5                         }                                
+ 547   4                      #endif
+ 548   4      
+ 549   4                         //***************************
+C51 COMPILER V8.04b   SERVICE                                                              03/17/2010 10:20:45 PAGE 10  
+
+ 550   4                         //     flash corr values
+ 551   4                         //***************************                                                                            
+ 552   4                         // copy block voltage corr factor
+ 553   4                         Ufac_u[Cells] = Ufac_Block_u;
+ 554   4                         
+ 555   4                         do
+ 556   4                         {
+ 557   5                            printf ("Do you want to flash y/n?\n", i);
+ 558   5                            c = getchar();                                                        
+ 559   5                         }while( c!='y' && c!='n');
+ 560   4                          
+ 561   4                         if( c=='y' )
+ 562   4                           FlashBoardCorrValues(&Ufac_u);                     
+ 563   4                              // read factors
+ 564   4                         FlashReadBoardCorrValues(pSlaveData);
+ 565   4                         // check
+ 566   4                         for(i=0; i<Cells; i++)
+ 567   4                         {                  
+ 568   5                                if(Ufac_u[i] != pSlaveData->Ufac_u[i])
+ 569   5                                      printf("error - cal.fac. cell%bd !!!\n", i);
+ 570   5                 }               
+ 571   4                         if(Ufac_u[Cells] != pSlaveData->Ufac_u[Cells])
+ 572   4                           printf("error - cal.fac. block: !!!\n");
+ 573   4                                                        
+ 574   4                         printf("Calibration closed\n");
+ 575   4                      } // end calibration
+ 576   3      
+ 577   3           } // end menue                                                                               
+ 578   2      
+ 579   2           // POSITION F
+ 580   2               if(pSlaveData->Uident < U2_48V)
+ 581   2               {
+ 582   3                 printf("Self-Test:\n");
+ 583   3                 // scan all Temperature sensors
+ 584   3             ScanTempAndBlockVoltage(pSlaveData);
+ 585   3             // sort all Temp
+ 586   3             GetAndSortTemperature(pSlaveData);
+ 587   3                 // scan all cells
+ 588   3                 ScanCells(pSlaveData);
+ 589   3             // sort all cells
+ 590   3             GetAndSortAllCellVoltages(pSlaveData);                                         
+ 591   3           
+ 592   3             // cell processing
+ 593   3             IsAnyCellOutOfRange(pSlaveData);
+ 594   3             // temp processing       >75°C
+ 595   3             IsTemperatureAndBlockOutOfRange(pSlaveData);
+ 596   3                                                                               
+ 597   3                 // printf
+ 598   3                 Print(pSlaveData);
+ 599   3      
+ 600   3                 // LEDs
+ 601   3                 if(pSlaveData->Error & CellOverLevel)
+ 602   3                   printf("\n LED_CellOverLevel\n");
+ 603   3             else if(pSlaveData->Error & CellUnderLevel)
+ 604   3                   printf("\n LED_CellUnderLevel\n");
+ 605   3                 else if(pSlaveData->Error & BlockUnderLevel) 
+ 606   3                   printf("\n LED_BlockUnderLevel\n");
+ 607   3             else if(pSlaveData->Error & TempOverLevel)
+ 608   3                   printf("\n LED_TempOverLevel\n");
+ 609   3                 else if(pSlaveData->Warning & (TempOpen | TempShortCut) )
+ 610   3                   printf("\n LED_TempSensor\n");
+ 611   3                 else printf("\n LED_BOARD_OKAY\n");                   
+C51 COMPILER V8.04b   SERVICE                                                              03/17/2010 10:20:45 PAGE 11  
+
+ 612   3                 // no errors    
+ 613   3                 pSlaveData->Error = 0; 
+ 614   3                 // pause
+ 615   3                 for(loop=0; loop<500000; loop++);
+ 616   3               }       
+ 617   2        }while( 1 );  // go out
+ 618   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   3524    ----
+   CONSTANT SIZE    =   1045    ----
+   XDATA SIZE       =   ----     264
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

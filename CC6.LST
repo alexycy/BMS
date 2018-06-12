@@ -1,0 +1,384 @@
+C51 COMPILER V8.04b   CC6                                                                  03/17/2010 10:20:44 PAGE 1   
+
+
+C51 COMPILER V8.04b, COMPILATION OF MODULE CC6
+OBJECT MODULE PLACED IN CC6.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE CC6.C LARGE OBJECTADVANCED OPTIMIZE(9,SPEED) BROWSE ORDER DEFINE(SLAVE_BOAR
+                    -DS,PRINT_ERROR,PRINT_WARNING,PRINT,PANASONIC_12_CELLS) DEBUG
+
+line level    source
+
+   1          //****************************************************************************
+   2          // @Module        Capture / Compare Unit 6 (CCU6)
+   3          // @Filename      CC6.C
+   4          // @Project       BM_NewSlave.dav
+   5          //----------------------------------------------------------------------------
+   6          // @Controller    Infineon XC886CLM-8FF
+   7          //
+   8          // @Compiler      Keil
+   9          //
+  10          // @Codegenerator 1.6
+  11          //
+  12          // @Description   This file contains functions that use the CCU6 module.
+  13          //
+  14          //----------------------------------------------------------------------------
+  15          // @Date          12.08.2009 19:23:26
+  16          //
+  17          //****************************************************************************
+  18          
+  19          // USER CODE BEGIN (CCU6_General,1)
+  20          
+  21          // USER CODE END
+  22          
+  23          
+  24          
+  25          //****************************************************************************
+  26          // @Project Includes
+  27          //****************************************************************************
+  28          
+  29          #include "MAIN.H"
+  30          
+  31          // USER CODE BEGIN (CCU6_General,2)
+  32          // USER CODE END
+  33          
+  34          
+  35          //****************************************************************************
+  36          // @Macros
+  37          //****************************************************************************
+  38          
+  39          // USER CODE BEGIN (CCU6_General,3)
+  40          
+  41          // USER CODE END
+  42          
+  43          
+  44          //****************************************************************************
+  45          // @Defines
+  46          //****************************************************************************
+  47          
+  48          // USER CODE BEGIN (CCU6_General,4)
+  49          
+  50          // USER CODE END
+  51          
+  52          
+  53          //****************************************************************************
+  54          // @Typedefs
+C51 COMPILER V8.04b   CC6                                                                  03/17/2010 10:20:44 PAGE 2   
+
+  55          //****************************************************************************
+  56          
+  57          // USER CODE BEGIN (CCU6_General,5)
+  58          
+  59          // USER CODE END
+  60          
+  61          
+  62          //****************************************************************************
+  63          // @Imported Global Variables
+  64          //****************************************************************************
+  65          
+  66          // USER CODE BEGIN (CCU6_General,6)
+  67          
+  68          // USER CODE END
+  69          
+  70          
+  71          //****************************************************************************
+  72          // @Global Variables
+  73          //****************************************************************************
+  74          
+  75          // USER CODE BEGIN (CCU6_General,7)
+  76          
+  77          // USER CODE END
+  78          
+  79          
+  80          //****************************************************************************
+  81          // @External Prototypes
+  82          //****************************************************************************
+  83          
+  84          // USER CODE BEGIN (CCU6_General,8)
+  85          
+  86          // USER CODE END
+  87          
+  88          
+  89          //****************************************************************************
+  90          // @Prototypes Of Local Functions
+  91          //****************************************************************************
+  92          
+  93          // USER CODE BEGIN (CCU6_General,9)
+  94          
+  95          // USER CODE END
+  96          
+  97          
+  98          //****************************************************************************
+  99          // @Function      void CC6_vInit(void) 
+ 100          //
+ 101          //----------------------------------------------------------------------------
+ 102          // @Description   This is the initialization function of the CCU6 function 
+ 103          //                library. It is assumed that the SFRs used by this library 
+ 104          //                are in their reset state. 
+ 105          //
+ 106          //----------------------------------------------------------------------------
+ 107          // @Returnvalue   None
+ 108          //
+ 109          //----------------------------------------------------------------------------
+ 110          // @Parameters    None
+ 111          //
+ 112          //----------------------------------------------------------------------------
+ 113          // @Date          12.08.2009
+ 114          //
+ 115          //****************************************************************************
+ 116          
+C51 COMPILER V8.04b   CC6                                                                  03/17/2010 10:20:44 PAGE 3   
+
+ 117          // USER CODE BEGIN (Init,1)
+ 118          
+ 119          // USER CODE END
+ 120          
+ 121          void CC6_vInit(void)
+ 122          {
+ 123   1        // USER CODE BEGIN (Init,2)
+ 124   1      
+ 125   1        // USER CODE END
+ 126   1      
+ 127   1        SFR_PAGE(_cc1, noSST);         // switch to page 1
+ 128   1      
+ 129   1        ///  -----------------------------------------------------------------------
+ 130   1        ///  Configuration of Timer Control Register
+ 131   1        ///  -----------------------------------------------------------------------
+ 132   1      
+ 133   1        CCU6_TCTR0L    =  0x00;        // load CCU6 timer control register 0 low
+ 134   1        CCU6_TCTR0H    =  0x00;        // load CCU6 timer control register 0 high
+ 135   1      
+ 136   1        ///  -----------------------------------------------------------------------
+ 137   1        ///  Configuration of CCU6 Timer 12:
+ 138   1        ///  -----------------------------------------------------------------------
+ 139   1        ///  - timer 12 Input clock selected  is 1
+ 140   1        ///  - the additional prescaler for T12 is enabled.
+ 141   1        ///  - timer 12 run bit is reset
+ 142   1        ///  - single shot mode is enabled
+ 143   1        ///  - timer 12 works in edge aligned mode
+ 144   1        ///  - interrupt on period match is disabled
+ 145   1        ///  - interrupt on one match is disabled
+ 146   1      
+ 147   1        CCU6_T12PRL    =  0x47;        // load CCU6 T12 period register low
+ 148   1        CCU6_T12PRH    =  0x00;        // load CCU6 T12 period register lhigh
+ 149   1      
+ 150   1        ///  -----------------------------------------------------------------------
+ 151   1        ///  Configuration of CCU6 Timer 13:
+ 152   1        ///  -----------------------------------------------------------------------
+ 153   1        ///  - Timer T13 Input clock selected is 1
+ 154   1        ///  - The additional prescaler for T13 is disabled
+ 155   1        ///  - timer 13 run bit is reset
+ 156   1        ///  - trigger control is disabled
+ 157   1        ///  - single shot mode is disabled
+ 158   1        ///  - interrupt on period match is disabled
+ 159   1        ///  - interrupt on compare match is disabled
+ 160   1      
+ 161   1        CCU6_T13PRL    =  0x01;        // load CCU6 T13 period register low
+ 162   1        CCU6_T13PRH    =  0x00;        // load CCU6 T13 period register high
+ 163   1      
+ 164   1        ///  -----------------------------------------------------------------------
+ 165   1        ///  Configuration of Dead-Time Control Register for Timer T12
+ 166   1        ///  -----------------------------------------------------------------------
+ 167   1      
+ 168   1        CCU6_T12DTCL   =  0x01;        // load CCU6 dead time control register low 
+ 169   1                                       // for timer T12
+ 170   1      
+ 171   1        CCU6_T12DTCH   =  0x00;        // load CCU6 dead time control register high 
+ 172   1                                       // for timer T12
+ 173   1      
+ 174   1        SFR_PAGE(_cc0, noSST);         // switch to page 0
+ 175   1      
+ 176   1        ///  -----------------------------------------------------------------------
+ 177   1        ///  Configuration of CCU6 Channel 0:
+ 178   1        ///  -----------------------------------------------------------------------
+C51 COMPILER V8.04b   CC6                                                                  03/17/2010 10:20:44 PAGE 4   
+
+ 179   1        ///  - channel 0 is disabled
+ 180   1      
+ 181   1        ///  -----------------------------------------------------------------------
+ 182   1        ///  Configuration of CCU6 Channel 1:
+ 183   1        ///  -----------------------------------------------------------------------
+ 184   1        ///  - channel 1 is disabled
+ 185   1      
+ 186   1        ///  -----------------------------------------------------------------------
+ 187   1        ///  Configuration of CCU6 Channel 2:
+ 188   1        ///  -----------------------------------------------------------------------
+ 189   1        ///  - channel 2 is disabled
+ 190   1      
+ 191   1        ///  -----------------------------------------------------------------------
+ 192   1        ///  Configuration of CCU6 Channel 3:
+ 193   1        ///  -----------------------------------------------------------------------
+ 194   1        ///  - T13 output is not inverted
+ 195   1      
+ 196   1      
+ 197   1        CCU6_CC63SRL   =  0x00;        // load CCU6 capture/compare shadow register 
+ 198   1                                       // low for channel 3
+ 199   1        CCU6_CC63SRH   =  0x00;        // load CCU6 capture/compare shadow register 
+ 200   1                                       // high for channel 3
+ 201   1      
+ 202   1      
+ 203   1        ///  -----------------------------------------------------------------------
+ 204   1        ///  Configuration of Multi-Channel Mode Output Register
+ 205   1        ///  -----------------------------------------------------------------------
+ 206   1      
+ 207   1        CCU6_MCMOUTSL  =  0x00;        // load CCU6 multi channel mode output 
+ 208   1                                       // control register low
+ 209   1        CCU6_MCMOUTSH  =  0x00;        // load CCU6 multi channel mode output 
+ 210   1                                       // control register high
+ 211   1      
+ 212   1        SFR_PAGE(_cc2, noSST);         // switch to page 2
+ 213   1      
+ 214   1        ///  -----------------------------------------------------------------------
+ 215   1        ///  Configuration of Timer Control Register
+ 216   1        ///  -----------------------------------------------------------------------
+ 217   1      
+ 218   1        CCU6_TCTR2L    =  0x01;        // load CCU6 timer control register 2 low
+ 219   1        CCU6_TCTR2H    =  0x00;        // load CCU6 timer control register 2 high
+ 220   1      
+ 221   1        ///  -----------------------------------------------------------------------
+ 222   1        ///  Configuration of CCU6 trap control:
+ 223   1        ///  -----------------------------------------------------------------------
+ 224   1        ///  - a trap can only be generated by SW by setting the bit TRPF
+ 225   1        ///  - the trap state is left when a zero-match of T12 (while counting up) 
+ 226   1        ///    is detected (synchronization to T12)
+ 227   1        ///  - bit TRPF is automatically cleared by HW (according to TRPPEN, TRPM0 
+ 228   1        ///    and TRPM1)
+ 229   1        ///  - trap interrupt is disabled
+ 230   1      
+ 231   1        CCU6_TRPCTRL   =  0x00;        // load CCU6 trap control register low
+ 232   1        CCU6_TRPCTRH   =  0x00;        // load CCU6 trap control register high
+ 233   1      
+ 234   1        ///  -----------------------------------------------------------------------
+ 235   1        ///  Configuration of Multi Channel Mode:
+ 236   1        ///  -----------------------------------------------------------------------
+ 237   1        ///  - multi channel mode is disabled
+ 238   1      
+ 239   1        CCU6_MODCTRL   =  0x00;        // load CCU6 modulation control register low
+ 240   1        CCU6_MODCTRH   =  0x00;        // load CCU6 modulation control register high
+C51 COMPILER V8.04b   CC6                                                                  03/17/2010 10:20:44 PAGE 5   
+
+ 241   1      
+ 242   1        ///  -----------------------------------------------------------------------
+ 243   1        ///  Configuration of Multi_Channel Mode Control Register
+ 244   1        ///  -----------------------------------------------------------------------
+ 245   1      
+ 246   1        CCU6_MCMCTR    =  0x00;        // load CCU6 multi channel mode control 
+ 247   1                                       // register 
+ 248   1      
+ 249   1        ///  -----------------------------------------------------------------------
+ 250   1        ///  Configuration of T12 Capture/Compare Mode Select Register
+ 251   1        ///  -----------------------------------------------------------------------
+ 252   1      
+ 253   1        CCU6_T12MSELL  =  0x00;        // load CCU6 T12 campture/compare mode 
+ 254   1                                       // select register low
+ 255   1      
+ 256   1        CCU6_T12MSELH  =  0x00;        // load CCU6 T12 campture/compare mode 
+ 257   1                                       // select register high
+ 258   1        ///  -----------------------------------------------------------------------
+ 259   1        ///  Configuration of Passive State Level Register
+ 260   1        ///  -----------------------------------------------------------------------
+ 261   1      
+ 262   1        CCU6_PSLR      =  0x00;        // load CCU6 passive state level register low
+ 263   1      
+ 264   1        ///  -----------------------------------------------------------------------
+ 265   1        ///  Configuration of CCU6 interrupt control:
+ 266   1        ///  -----------------------------------------------------------------------
+ 267   1        ///  - for channel 0 interrupts is node I0 selected
+ 268   1        ///  - for channel 1 interrupts is node I0 selected
+ 269   1        ///  - for channel 2 interrupts is node I0 selected
+ 270   1        ///  - for correct hall event interrupt is node I0 selected
+ 271   1        ///  - for error interrupts is node I0 selected
+ 272   1        ///  - for T12 interrupts is node I0 selected
+ 273   1        ///  - for T13 interrupts is node I0 selected
+ 274   1      
+ 275   1        CCU6_INPL      =  0x00;        // load CCU6 capture/compare interrupt node 
+ 276   1                                       // pointer register low
+ 277   1        CCU6_INPH      =  0x00;        // load CCU6 capture/compare interrupt node 
+ 278   1                                       // pointer register high
+ 279   1      
+ 280   1        CCU6_IENL      =  0x00;        // load CCU6 capture/compare interrupt 
+ 281   1                                       // enable register low
+ 282   1        CCU6_IENH      =  0x00;        // load CCU6 capture/compare interrupt 
+ 283   1                                       // enable register high
+ 284   1      
+ 285   1        SFR_PAGE(_cc3, noSST);         // switch to page 3
+ 286   1      
+ 287   1        ///  -----------------------------------------------------------------------
+ 288   1        ///  Configuration of Compare State Register
+ 289   1        ///  -----------------------------------------------------------------------
+ 290   1      
+ 291   1        CCU6_CMPSTATH  =  0x00;        // load CCU6 compare status register high
+ 292   1      
+ 293   1        ///  -----------------------------------------------------------------------
+ 294   1        ///  Configuration of CCU6 module input signals:
+ 295   1        ///  -----------------------------------------------------------------------
+ 296   1        ///  - signal CC60 is not used
+ 297   1        ///  - signal CC61 is not used
+ 298   1        ///  - signal CC62 is not used
+ 299   1        ///  - signal #CTRAP is not used
+ 300   1      
+ 301   1        CCU6_PISEL0L   =  0x00;        // load CCU6 Port Input Select Register 0 Low
+ 302   1      
+C51 COMPILER V8.04b   CC6                                                                  03/17/2010 10:20:44 PAGE 6   
+
+ 303   1        ///  - signal CCPOS0 is not used
+ 304   1        ///  - signal CCPOS1 is not used
+ 305   1        ///  - signal CCPOS2 is not used
+ 306   1        ///  - signal T12HR is not used
+ 307   1      
+ 308   1        CCU6_PISEL0H   =  0x00;        // load CCU6 Port Input Select Register 0 
+ 309   1                                       // High
+ 310   1      
+ 311   1        ///  - signal T13HR is not used
+ 312   1      
+ 313   1        CCU6_PISEL2    =  0x00;        // load CCU6 Port Input Select Register 2
+ 314   1      
+ 315   1      
+ 316   1      
+ 317   1      
+ 318   1        ///  -----------------------------------------------------------------------
+ 319   1        ///  Configuration of the used CCU6 Channels Interrupts:
+ 320   1        ///  -----------------------------------------------------------------------
+ 321   1        ///  - capture/compare interrupt node 0 is disabled
+ 322   1        ///  - capture/compare interrupt node 1 is disabled
+ 323   1        ///  - capture/compare interrupt node 2 is disabled
+ 324   1        ///  - capture/compare interrupt node 3 is disabled
+ 325   1      
+ 326   1        SFR_PAGE(_cc0, noSST);         // switch to page 0
+ 327   1      
+ 328   1        ///  -----------------------------------------------------------------------
+ 329   1        ///  Timer Control Register
+ 330   1        ///  -----------------------------------------------------------------------
+ 331   1        ///  -  enable shadow transfer to T12 and T13
+ 332   1      
+ 333   1        CCU6_TCTR4L    =  0x40;        // load CCU6 timer control register 4 low
+ 334   1      
+ 335   1        CCU6_TCTR4H    =  0x40;        // load CCU6 timer control register 4 high
+ 336   1      
+ 337   1        // USER CODE BEGIN (Init,3)
+ 338   1        // USER CODE END
+ 339   1      
+ 340   1      } //  End of function CC6_vInit
+ 341          
+ 342          
+ 343          // USER CODE BEGIN (CCU6_General,10)
+ 344          
+ 345          // USER CODE END
+ 346          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     85    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
